@@ -28,3 +28,6 @@ __pycache__/
 
 ### Executable ###
 *.exe
+
+### Tools game logs ###
+game_logs/*
