@@ -7,7 +7,7 @@ State::State()
 {
     gameover = 0;
     turn = 0;
-    bug.open("./debug.txt");
+    bug.open("../../debug.txt");
 };
 
 //deconstructor
