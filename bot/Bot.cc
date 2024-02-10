@@ -31,16 +31,20 @@ void Bot::makeMoves()
     state.bug << "turn " << state.turn << ":" << endl;
     state.bug << state << endl;
 
+    orders.clear();
+
     //picks out moves for each ant
     for(int ant=0; ant<(int)state.myAnts.size(); ant++)
     {
         for(int d=0; d<TDIRECTIONS; d++)
         {
-            Location loc = state.getLocation(state.myAnts[ant], d);
+            Location oldLoc = state.myAnts[ant];
+            Location loc = state.getLocation(oldLoc, d);
 
-            if(!state.grid[loc.row][loc.col].isWater)
+            if(!state.grid[loc.row][loc.col].isWater && orders.count(std::make_pair(loc.row, loc.col)) == 0)
             {
-                state.makeMove(state.myAnts[ant], d);
+                state.makeMove(oldLoc, d);
+                orders[std::make_pair(loc.row, loc.col)] = std::make_pair(oldLoc.row, oldLoc.col);
                 break;
             }
         }
