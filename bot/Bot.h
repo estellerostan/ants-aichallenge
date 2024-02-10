@@ -10,7 +10,7 @@
 struct Bot
 {
 
-	std::map<std::pair<int, int>, std::pair<int, int>> orders;
+	std::map<Location, Location> orders;
 
 	State state;
 
@@ -19,6 +19,7 @@ struct Bot
 	void playGame();    //plays a single game of Ants
 
 	void makeMoves();   //makes moves for a single turn
+	bool makeMove(const Location& loc, int direction);
 	void endTurn();     //indicates to the engine that it has made its moves
 };
 
