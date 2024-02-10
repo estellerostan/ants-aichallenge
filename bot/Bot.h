@@ -11,6 +11,7 @@ struct Bot
 {
 
 	std::map<Location, Location> orders;
+	std::map<Location, Location> targets;
 
 	State state;
 
@@ -19,7 +20,8 @@ struct Bot
 	void playGame();    //plays a single game of Ants
 
 	void makeMoves();   //makes moves for a single turn
-	bool makeMove(const Location& loc, int direction);
+	bool makeMove(const Location& loc, const Location& dest); // makes a move following a destination for a single ant
+	bool makeMove(const Location& loc, int direction); // makes a move to a direction for a single ant
 	void endTurn();     //indicates to the engine that it has made its moves
 };
 

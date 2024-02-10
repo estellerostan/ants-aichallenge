@@ -18,11 +18,22 @@ struct Location
 		row = r;
 		col = c;
 	}
+
+	// for file debug log
+	friend std::ostream& operator <<(std::ostream& os, Location const& a)
+	{
+		return os << "(" << a.row << ';' << a.col << ")";
+	}
 };
 
 inline bool operator<(Location const& left, Location const& right)
 {
 	return left.row < right.row || (right.row >= left.row && left.col < right.col); // adapted from std::pair operator<
+}
+
+inline bool operator==(Location const& left, Location const& right)
+{
+	return left.row == right.row && left.col == right.col;
 }
 
 #endif //LOCATION_H_

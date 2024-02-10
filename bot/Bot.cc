@@ -32,19 +32,62 @@ void Bot::makeMoves()
     state.bug << state << endl;
 
     orders.clear();
+    targets.clear();
 
-    //picks out moves for each ant
-    for(Location loc : state.myAnts)
+    std::vector<std::tuple<double, Location, Location>> antDist;
+    // find close food
+    for(auto foodLoc : state.food)
     {
-        for(int d=0; d<TDIRECTIONS; d++)
+        for (Location antLoc : state.myAnts)
         {
-            if (makeMove(loc, d))
-                break;
+            auto dist = state.distance(antLoc, foodLoc);
+
+            antDist.emplace_back(dist, antLoc, foodLoc);
+        }
+    }
+
+    std::sort(antDist.begin(), antDist.end());
+
+    for (auto res : antDist)
+    {
+        Location antLoc = std::get<1>(res);
+        Location foodLoc = std::get<2>(res);
+
+        // if food has no ant gathering it
+        if (targets.count(foodLoc) == 0) {
+            if (!targets.empty())
+            {
+                // if ant has no task
+                for (auto it = targets.begin(); it != targets.end(); ++it) {
+                    if (!(it->second == antLoc)) {
+                        makeMove(antLoc, foodLoc);
+                    }
+                }
+            }
+            else
+            {
+                makeMove(antLoc, foodLoc);
+            }
         }
     }
 
     state.bug << "time taken: " << state.timer.getTime() << "ms" << endl << endl;
 }
+
+bool Bot::makeMove(const Location& loc, const Location& dest) {
+    const std::vector<int> directions = state.getDirections(loc, dest);
+
+    for (int d : directions)
+    {
+	    if (makeMove(loc, d))
+	    {
+		    targets[dest] = loc;
+		    return true;
+	    }
+    }
+
+    return false;
+};
 
 bool Bot::makeMove(const Location& loc, const int direction)
 {
@@ -54,6 +97,7 @@ bool Bot::makeMove(const Location& loc, const int direction)
     {
         state.makeMove(loc, direction);
         orders[newLoc] = loc;
+        //state.bug << "move: " << loc << " " << direction << " " << newLoc << "\n";
         return true;
     }
     return false;
