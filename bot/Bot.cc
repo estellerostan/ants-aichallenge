@@ -34,6 +34,12 @@ void Bot::makeMoves()
     orders.clear();
     targets.clear();
 
+    // prevent stepping on own hill
+    for (Location myHill : state.myHills)
+    {
+        orders[myHill] = Location(-1, -1);
+    }
+
     std::vector<std::tuple<double, Location, Location>> antDist;
     // find close food
     for(auto foodLoc : state.food)
@@ -67,6 +73,30 @@ void Bot::makeMoves()
             else
             {
                 makeMove(antLoc, foodLoc);
+            }
+        }
+    }
+
+    // add a location in orders even for each ant that did not move
+    // to make unblock hills work
+    for (Location loc : state.myAnts)
+    {
+        orders[loc] = loc;
+    }
+
+    // unblock hills
+    for (Location hillLoc : state.myHills) 
+    {
+        auto it = std::find(state.myAnts.cbegin(), state.myAnts.cend(), hillLoc);
+        if (it != state.myAnts.end())
+        {
+            // an ant is on a hill
+            for (int d = 0; d < TDIRECTIONS; d++)
+            {
+                if (makeMove(hillLoc, d)) 
+                {
+                    break;
+                }
             }
         }
     }
