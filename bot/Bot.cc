@@ -31,10 +31,24 @@ void Bot::makeMoves()
     state.bug << "turn " << state.turn << ":" << endl;
     state.bug << state << endl;
 
+    setup();
+    gatherFood();
+    attackHills();
+	// TODO: fix perf problems for large maps (of 6p with time taken > 100ms)
+    // explore unseen areas
+    exploreMap();
+    unblockHills();
+
+    state.bug << "time taken: " << state.timer.getTime() << "ms" << endl << endl;
+}
+
+void Bot::setup()
+{
     orders.clear();
     targets.clear();
 
     // add all locations to unseen tiles set, run once
+    // necessary for Bot::exploreMap
     if (unseenTiles.empty()) {
         for (int row = 0; row < state.rows; row++) {
             for (int col = 0; col < state.cols; col++) {
@@ -57,14 +71,19 @@ void Bot::makeMoves()
     }
 
     // prevent stepping on own hill
+    // necessary for Bot::unblockHills
     for (Location myHill : state.myHills)
     {
         orders[myHill] = Location(-1, -1);
     }
+}
 
+
+void Bot::gatherFood()
+{
     std::vector<std::tuple<double, Location, Location>> antDist;
     // find close food
-    for(auto foodLoc : state.food)
+    for (auto foodLoc : state.food)
     {
         for (Location antLoc : state.myAnts)
         {
@@ -86,8 +105,51 @@ void Bot::makeMoves()
             makeMove(antLoc, foodLoc);
         }
     }
+}
 
-    // attack hills
+void Bot::unblockHills()
+{
+    for (Location hillLoc : state.myHills)
+    {
+        auto it = std::find(state.myAnts.cbegin(), state.myAnts.cend(), hillLoc);
+        if (it != state.myAnts.end())
+        {
+            // an ant is on a hill
+            for (int d = 0; d < TDIRECTIONS; d++)
+            {
+                if (makeMove(hillLoc, d))
+                {
+                    break;
+                }
+            }
+        }
+    }
+}
+
+void Bot::exploreMap()
+{
+    for (Location antLoc : state.myAnts) 
+    {
+        if (!orders.count(antLoc)) {
+            std::vector<std::tuple<int, Location>> unseenDist;
+            for (Location unseenLoc : unseenTiles) 
+            {
+                auto dist = state.distance(antLoc, unseenLoc);
+                unseenDist.emplace_back(dist, unseenLoc);
+            }
+            std::sort(unseenDist.begin(), unseenDist.end());
+            for (auto res : unseenDist) 
+            {
+                Location unseenLoc = std::get<1>(res);
+                if (makeMove(antLoc, unseenLoc))
+                    break;
+            }
+        }
+    }
+}
+
+void Bot::attackHills()
+{
     for (auto enemyHill : state.enemyHills)
     {
         if (enemyHills.count(enemyHill) == 0)
@@ -114,44 +176,8 @@ void Bot::makeMoves()
         Location hillLoc = std::get<2>(res);
         makeMove(antLoc, hillLoc);
     }
-
-	// TODO: fix perf problems for large maps (of 6p with time taken > 100ms)
-    // explore unseen areas
-    for (Location antLoc : state.myAnts) {
-        if (!orders.count(antLoc)) {
-            std::vector<std::tuple<int, Location>> unseenDist;
-            for (Location unseenLoc : unseenTiles) {
-                auto dist = state.distance(antLoc, unseenLoc);
-                unseenDist.emplace_back(dist, unseenLoc);
-            }
-            std::sort(unseenDist.begin(), unseenDist.end());
-            for (auto res : unseenDist) {
-                Location unseenLoc = std::get<1>(res);
-                if (makeMove(antLoc, unseenLoc))
-                    break;
-            }
-        }
-    }
-
-    // unblock hills
-    for (Location hillLoc : state.myHills) 
-    {
-        auto it = std::find(state.myAnts.cbegin(), state.myAnts.cend(), hillLoc);
-        if (it != state.myAnts.end())
-        {
-            // an ant is on a hill
-            for (int d = 0; d < TDIRECTIONS; d++)
-            {
-                if (makeMove(hillLoc, d)) 
-                {
-                    break;
-                }
-            }
-        }
-    }
-
-    state.bug << "time taken: " << state.timer.getTime() << "ms" << endl << endl;
 }
+
 
 bool Bot::isAntBusyWithFood(const Location& antLoc)
 {
@@ -160,8 +186,10 @@ bool Bot::isAntBusyWithFood(const Location& antLoc)
         return false;
     }
 
-    for (auto it = targets.begin(); it != targets.end(); ++it) {
-        if (it->second == antLoc) {
+    for (auto it = targets.begin(); it != targets.end(); ++it) 
+    {
+        if (it->second == antLoc)
+        {
             return true;
         }
     }
@@ -171,7 +199,7 @@ bool Bot::isAntBusyWithFood(const Location& antLoc)
 bool Bot::makeMove(const Location& loc, const Location& dest) {
     const std::vector<int> directions = state.getDirections(loc, dest);
 
-    for (int d : directions)
+    for (const int d : directions)
     {
 	    if (makeMove(loc, d))
 	    {
@@ -187,14 +215,16 @@ bool Bot::makeMove(const Location& loc, const int direction)
 {
     const Location newLoc = state.getLocation(loc, direction);
 
-    if (state.isUnoccupied(newLoc) && orders.count(newLoc) == 0)
+    const bool canMakeMove = state.isUnoccupied(newLoc) && orders.count(newLoc) == 0;
+    if (!canMakeMove)
     {
-        state.makeMove(loc, direction);
-        orders[newLoc] = loc;
-        //state.bug << "move: " << loc << " " << direction << " " << newLoc << "\n";
-        return true;
+        return false;
     }
-    return false;
+
+    state.makeMove(loc, direction);
+    orders[newLoc] = loc;
+    //state.bug << "move: " << loc << " " << direction << " " << newLoc << "\n";
+    return true;
 };
 
 //finishes the turn
