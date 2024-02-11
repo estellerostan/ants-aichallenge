@@ -81,21 +81,9 @@ void Bot::makeMoves()
         Location antLoc = std::get<1>(res);
         Location foodLoc = std::get<2>(res);
 
-        // if food has no ant gathering it
-        if (targets.count(foodLoc) == 0) {
-            if (!targets.empty())
-            {
-                // if ant has no task
-                for (auto it = targets.begin(); it != targets.end(); ++it) {
-                    if (!(it->second == antLoc)) {
-                        makeMove(antLoc, foodLoc);
-                    }
-                }
-            }
-            else
-            {
-                makeMove(antLoc, foodLoc);
-            }
+        // if food has no ant gathering it and ant has no task
+        if (targets.count(foodLoc) == 0 && !isAntBusyWithFood(antLoc)) {
+            makeMove(antLoc, foodLoc);
         }
     }
 
@@ -105,7 +93,6 @@ void Bot::makeMoves()
         if (enemyHills.count(enemyHill) == 0)
         {
             enemyHills.insert(enemyHill);
-            state.bug <<"hill" << enemyHill << endl;
         }
     }
 
@@ -116,13 +103,12 @@ void Bot::makeMoves()
         {
             if (!orders.count(antLoc)) {
                 auto dist = state.distance(antLoc, hillLoc);
-
-                antDist.emplace_back(dist, antLoc, hillLoc);
+                antDistToHill.emplace_back(dist, antLoc, hillLoc);
             }
         }
     }
     std::sort(antDistToHill.begin(), antDistToHill.end());
-    for (auto res : antDist)
+    for (auto res : antDistToHill)
     {
         Location antLoc = std::get<1>(res);
         Location hillLoc = std::get<2>(res);
@@ -165,6 +151,21 @@ void Bot::makeMoves()
     }
 
     state.bug << "time taken: " << state.timer.getTime() << "ms" << endl << endl;
+}
+
+bool Bot::isAntBusyWithFood(const Location& antLoc)
+{
+    if (targets.empty())
+    {
+        return false;
+    }
+
+    for (auto it = targets.begin(); it != targets.end(); ++it) {
+        if (it->second == antLoc) {
+            return true;
+        }
+    }
+    return false;
 }
 
 bool Bot::makeMove(const Location& loc, const Location& dest) {
