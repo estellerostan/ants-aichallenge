@@ -1,4 +1,4 @@
-# AI Challenge Ants
+# [AI Challenge Ants](http://ants.aichallenge.org/)
 
 ## Using VS Code
 There are two parts to set up the project with VS Code on Windows.
