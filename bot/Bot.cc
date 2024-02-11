@@ -34,6 +34,28 @@ void Bot::makeMoves()
     orders.clear();
     targets.clear();
 
+    // add all locations to unseen tiles set, run once
+    if (unseenTiles.empty()) {
+        for (int row = 0; row < state.rows; row++) {
+            for (int col = 0; col < state.cols; col++) {
+                unseenTiles.insert(Location(row, col));
+            }
+        }
+    }
+    // remove any tiles that can be seen, run each turn
+    for (auto iter = unseenTiles.begin(); iter != unseenTiles.end();)
+    {
+        if (state.grid[iter->row][iter->col].isVisible)
+        {
+            iter = unseenTiles.erase(iter);
+            //state.bug << "seen: " << iter->row << " " << iter->col << "\n";
+        }
+        else
+        {
+            ++iter;
+        }
+    }
+
     // prevent stepping on own hill
     for (Location myHill : state.myHills)
     {
@@ -77,6 +99,23 @@ void Bot::makeMoves()
         }
     }
 
+	// TODO: fix perf problems for large maps (of 6p with time taken > 100ms)
+    // explore unseen areas
+    for (Location antLoc : state.myAnts) {
+        if (!orders.count(antLoc)) {
+            std::vector<std::tuple<int, Location>> unseenDist;
+            for (Location unseenLoc : unseenTiles) {
+                auto dist = state.distance(antLoc, unseenLoc);
+                unseenDist.emplace_back(dist, unseenLoc);
+            }
+            std::sort(unseenDist.begin(), unseenDist.end());
+            for (auto res : unseenDist) {
+                Location unseenLoc = std::get<1>(res);
+                if (makeMove(antLoc, unseenLoc))
+                    break;
+            }
+        }
+    }
 
     // unblock hills
     for (Location hillLoc : state.myHills) 

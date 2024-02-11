@@ -3,6 +3,7 @@
 
 #include "State.h"
 #include <map>
+#include <set>
 
 /*
 	This struct represents your bot in the game of Ants
@@ -12,6 +13,7 @@ struct Bot
 
 	std::map<Location, Location> orders;
 	std::map<Location, Location> targets;
+	std::set<Location> unseenTiles;
 
 	State state;
 
