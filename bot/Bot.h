@@ -14,6 +14,7 @@ struct Bot
 	std::map<Location, Location> orders;
 	std::map<Location, Location> targets;
 	std::set<Location> unseenTiles;
+	std::set<Location> enemyHills;
 
 	State state;
 

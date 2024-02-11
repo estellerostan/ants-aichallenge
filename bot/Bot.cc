@@ -99,6 +99,36 @@ void Bot::makeMoves()
         }
     }
 
+    // attack hills
+    for (auto enemyHill : state.enemyHills)
+    {
+        if (enemyHills.count(enemyHill) == 0)
+        {
+            enemyHills.insert(enemyHill);
+            state.bug <<"hill" << enemyHill << endl;
+        }
+    }
+
+    std::vector<std::tuple<double, Location, Location>> antDistToHill;
+    for (auto hillLoc : enemyHills)
+    {
+        for (Location antLoc : state.myAnts)
+        {
+            if (!orders.count(antLoc)) {
+                auto dist = state.distance(antLoc, hillLoc);
+
+                antDist.emplace_back(dist, antLoc, hillLoc);
+            }
+        }
+    }
+    std::sort(antDistToHill.begin(), antDistToHill.end());
+    for (auto res : antDist)
+    {
+        Location antLoc = std::get<1>(res);
+        Location hillLoc = std::get<2>(res);
+        makeMove(antLoc, hillLoc);
+    }
+
 	// TODO: fix perf problems for large maps (of 6p with time taken > 100ms)
     // explore unseen areas
     for (Location antLoc : state.myAnts) {
