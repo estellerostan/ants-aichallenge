@@ -17,13 +17,13 @@ void Bot::playGame()
     endTurn();
 
     //continues making moves while the game is not over
-    while(cin >> state)
+    while (cin >> state)
     {
         state.updateVisionInformation();
         makeMoves();
         endTurn();
     }
-};
+}
 
 //makes the bots moves for the turn
 void Bot::makeMoves()
@@ -77,12 +77,6 @@ void Bot::makeMoves()
         }
     }
 
-    // add a location in orders even for each ant that did not move
-    // to make unblock hills work
-    for (Location loc : state.myAnts)
-    {
-        orders[loc] = loc;
-    }
 
     // unblock hills
     for (Location hillLoc : state.myHills) 
@@ -123,7 +117,7 @@ bool Bot::makeMove(const Location& loc, const int direction)
 {
     const Location newLoc = state.getLocation(loc, direction);
 
-    if (!state.grid[newLoc.row][newLoc.col].isWater && orders.count(newLoc) == 0)
+    if (!state.grid[newLoc.row][newLoc.col].isWater && !state.grid[newLoc.row][newLoc.col].isMyAnt && orders.count(newLoc) == 0)
     {
         state.makeMove(loc, direction);
         orders[newLoc] = loc;
