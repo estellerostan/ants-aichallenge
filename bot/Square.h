@@ -14,17 +14,17 @@ struct Square
 
     Square()
     {
-        isVisible = isWater = isHill = isFood = isMyAnt = 0;
+        isVisible = isWater = isHill = isFood = isMyAnt = false;
         ant = hillPlayer = -1;
     };
 
     //resets the information for the square except water information
     void reset()
     {
-        isVisible = 0;
-        isHill = 0;
-        isFood = 0;
-        isMyAnt = 0;
+        isVisible = false;
+        isHill = false;
+        isFood = false;
+        isMyAnt = false;
         ant = hillPlayer = -1;
         deadAnts.clear();
     };

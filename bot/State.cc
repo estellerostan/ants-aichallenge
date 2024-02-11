@@ -5,7 +5,7 @@ using namespace std;
 //constructor
 State::State()
 {
-    gameover = 0;
+    gameover = false;
     turn = 0;
     bug.open("../../debug.log");
 };
@@ -134,8 +134,8 @@ void State::updateVisionInformation()
         locQueue.push(sLoc);
 
         std::vector<std::vector<bool> > visited(rows, std::vector<bool>(cols, 0));
-        grid[sLoc.row][sLoc.col].isVisible = 1;
-        visited[sLoc.row][sLoc.col] = 1;
+        grid[sLoc.row][sLoc.col].isVisible = true;
+        visited[sLoc.row][sLoc.col] = true;
 
         while(!locQueue.empty())
         {
@@ -148,10 +148,10 @@ void State::updateVisionInformation()
 
                 if(!visited[nLoc.row][nLoc.col] && distance(sLoc, nLoc) <= viewradius)
                 {
-                    grid[nLoc.row][nLoc.col].isVisible = 1;
+                    grid[nLoc.row][nLoc.col].isVisible = true;
                     locQueue.push(nLoc);
                 }
-                visited[nLoc.row][nLoc.col] = 1;
+                visited[nLoc.row][nLoc.col] = true;
             }
         }
     }
@@ -199,7 +199,7 @@ istream& operator>>(istream &is, State &state)
     {
         if(inputType == "end")
         {
-            state.gameover = 1;
+            state.gameover = true;
             break;
         }
         else if(inputType == "turn")
@@ -260,13 +260,13 @@ istream& operator>>(istream &is, State &state)
             if(inputType == "w") //water square
             {
                 is >> row >> col;
-                state.grid[row][col].isWater = 1;
+                state.grid[row][col].isWater = true;
             }
             else if(inputType == "f") //food square
             {
                 is >> row >> col;
-                state.grid[row][col].isFood = 1;
-                state.food.push_back(Location(row, col));
+                state.grid[row][col].isFood = true;
+                state.food.emplace_back(row, col);
             }
             else if(inputType == "a") //live ant square
             {
@@ -274,11 +274,11 @@ istream& operator>>(istream &is, State &state)
                 state.grid[row][col].ant = player;
                 if (player == 0)
                 {
-                    state.grid[row][col].isMyAnt = 1;
-                    state.myAnts.push_back(Location(row, col));
+                    state.grid[row][col].isMyAnt = true;
+                    state.myAnts.emplace_back(row, col);
                 }
                 else
-                    state.enemyAnts.push_back(Location(row, col));
+                    state.enemyAnts.emplace_back(row, col);
             }
             else if(inputType == "d") //dead ant square
             {
@@ -288,12 +288,12 @@ istream& operator>>(istream &is, State &state)
             else if(inputType == "h")
             {
                 is >> row >> col >> player;
-                state.grid[row][col].isHill = 1;
+                state.grid[row][col].isHill = true;
                 state.grid[row][col].hillPlayer = player;
                 if(player == 0)
-                    state.myHills.push_back(Location(row, col));
+                    state.myHills.emplace_back(row, col);
                 else
-                    state.enemyHills.push_back(Location(row, col));
+                    state.enemyHills.emplace_back(row, col);
 
             }
             else if(inputType == "players") //player information
