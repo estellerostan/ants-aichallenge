@@ -156,7 +156,7 @@ bool Bot::makeMove(const Location& loc, const int direction)
 {
     const Location newLoc = state.getLocation(loc, direction);
 
-    if (!state.grid[newLoc.row][newLoc.col].isWater && !state.grid[newLoc.row][newLoc.col].isMyAnt && orders.count(newLoc) == 0)
+    if (state.isUnoccupied(newLoc) && orders.count(newLoc) == 0)
     {
         state.makeMove(loc, direction);
         orders[newLoc] = loc;

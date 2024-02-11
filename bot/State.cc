@@ -114,6 +114,11 @@ std::vector<int> State::getDirections(Location l1, Location l2) {
     return directions;
 }
 
+bool State::isUnoccupied(const Location &loc) const
+{
+    return !grid[loc.row][loc.col].isWater && !grid[loc.row][loc.col].isMyAnt;
+}
+
 /*
     This function will update update the lastSeen value for any squares currently
     visible by one of your live ants.
