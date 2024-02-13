@@ -101,7 +101,8 @@ void Bot::gatherFood()
         Location foodLoc = std::get<2>(res);
 
         // if food has no ant gathering it and ant has no task
-        if (targets.count(foodLoc) == 0 && !isAntBusyWithFood(antLoc)) {
+        const bool isAntBusyWithFood = containsValue(targets, antLoc);
+        if (targets.count(foodLoc) == 0 && !isAntBusyWithFood) {
             makeMove(antLoc, foodLoc);
         }
     }
@@ -112,7 +113,8 @@ void Bot::unblockHills()
     for (Location hillLoc : state.myHills)
     {
         auto it = std::find(state.myAnts.cbegin(), state.myAnts.cend(), hillLoc);
-        if (it != state.myAnts.end())
+        const bool hasMove = containsValue(orders, hillLoc);
+        if (it != state.myAnts.end() && !hasMove)
         {
             // an ant is on a hill
             for (int d = 0; d < TDIRECTIONS; d++)
@@ -128,9 +130,11 @@ void Bot::unblockHills()
 
 void Bot::exploreMap()
 {
-    for (Location antLoc : state.myAnts) 
+    for (Location antLoc : state.myAnts)
     {
-        if (!orders.count(antLoc)) {
+        const bool hasMove = containsValue(orders, antLoc);
+        if (!hasMove)
+        {
             std::vector<std::tuple<int, Location>> unseenDist;
             for (Location unseenLoc : unseenTiles) 
             {
@@ -141,8 +145,9 @@ void Bot::exploreMap()
             for (auto res : unseenDist) 
             {
                 Location unseenLoc = std::get<1>(res);
-                if (makeMove(antLoc, unseenLoc))
+                if (makeMove(antLoc, unseenLoc)) {
                     break;
+                }
             }
         }
     }
@@ -163,7 +168,8 @@ void Bot::attackHills()
     {
         for (Location antLoc : state.myAnts)
         {
-            if (!orders.count(antLoc)) {
+            const bool hasMove = containsValue(orders, antLoc);
+            if (!hasMove) {
                 auto dist = state.distance(antLoc, hillLoc);
                 antDistToHill.emplace_back(dist, antLoc, hillLoc);
             }
@@ -179,14 +185,14 @@ void Bot::attackHills()
 }
 
 
-bool Bot::isAntBusyWithFood(const Location& antLoc)
+bool Bot::containsValue(std::map<Location, Location>& locMap, const Location& antLoc)
 {
-    if (targets.empty())
+    if (locMap.empty())
     {
         return false;
     }
 
-    for (auto it = targets.begin(); it != targets.end(); ++it) 
+    for (auto it = locMap.begin(); it != locMap.end(); ++it)
     {
         if (it->second == antLoc)
         {

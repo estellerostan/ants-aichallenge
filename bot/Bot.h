@@ -24,7 +24,7 @@ struct Bot
 	void playGame();    //plays a single game of Ants
 
 	void makeMoves();   //makes moves for a single turn
-	bool isAntBusyWithFood(const Location& antLoc);
+	static bool containsValue(std::map<Location, Location>& locMap, const Location& antLoc);
 	void setup();
 	void gatherFood();
 	void unblockHills();
