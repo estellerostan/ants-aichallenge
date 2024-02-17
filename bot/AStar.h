@@ -6,11 +6,16 @@ class AStar
 {
 public:
 
-    vector<vector<Location>> grid;
+    struct Node {
+        Node* parentNode;
+        Location position;
 
-    State& state;
+        float gCost;
+        float hCost;
+        float fCost;
+    };
 
-    AStar(State& state) : state(state) {};
+    AStar(State& state) : _state(state) {};
 
     void SetGrid();
 
@@ -18,10 +23,7 @@ public:
 
 private:
 
-    double ComputeEuchlidianCost(Node* currentNode, Node* neighborNode);
     double ComputeManhattanCost(Node* currentNode, Node* neighborNode);
-
-    void UpdateNeighbors(Node* CurrentNode, Node* NeighbourNode, vector<Node*>& availableNodes);
+    vector<vector<Node>> _nodeGrid;
+    State& _state;
 };
-//Make a Node class with info relative to the cost, the location, the next Node etc
-//Check class material from L2
