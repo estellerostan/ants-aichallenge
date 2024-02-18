@@ -1,0 +1,2 @@
+@echo off
+python "%~dp0playgame.py" --log_dir game_logs --turns 60 --scenario --food none --player_seed 7 --verbose -e --map_file "%~dp0maps\example\tutorial1.map" %* "python ""%~dp0sample_bots\python\HunterBot.py"""
