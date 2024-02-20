@@ -23,7 +23,7 @@ public:
 
 private:
 
-    float ManhattanDistance(Node* currentNode, Node* neighborNode);
+    float ManhattanDistance(Location currentLocation, Location destinationLocation);
     void ComputeManhattanCost(Node* currentNode, Node* neighborNode);
     vector<vector<Node>> _nodeGrid;
     State& _state;
