@@ -11,12 +11,12 @@ vector<Location> AStar::GetPath(Node currentNode, Location destinationNode) {
 
 }
 
-double AStar::ManhattanDistance(Node* currentNode, Node* neighborNode) {
+float AStar::ManhattanDistance(Node* currentNode, Node* neighborNode) {
     return abs(currentNode->position.row - neighborNode->position.row) + abs(currentNode->position.col - neighborNode->position.col);
 }
 
 void AStar::ComputeManhattanCost(Node* currentNode, Node* neighborNode) {
-    int manhattanDistance = ManhattanDistance(currentNode, neighborNode);
+    float manhattanDistance = ManhattanDistance(currentNode, neighborNode);
     if (currentNode->gCost + manhattanDistance < neighborNode->gCost)
     {
         neighborNode->parentNode = currentNode;
