@@ -28,6 +28,7 @@ const int DIRECTIONS[4][2] = { {-1, 0}, {0, 1}, {1, 0}, {0, -1} };      //{N, E,
 */
 struct State
 {
+public:
     /*
         Variables
     */
