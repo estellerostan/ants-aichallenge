@@ -140,6 +140,9 @@ void Bot::exploreMap()
             {
                 auto dist = state.distance(antLoc, unseenLoc);
                 unseenDist.emplace_back(dist, unseenLoc);
+                // avoid timeout, even if the search is not complete
+                // better than being removed from the game
+                if (state.timeRemaining() < 200) break;
             }
             std::sort(unseenDist.begin(), unseenDist.end());
             for (auto res : unseenDist) 

@@ -36,6 +36,11 @@ void State::reset()
                 grid[row][col].reset();
 };
 
+// Calculates the time left before a timeout, useful to check to abort slow code
+double State::timeRemaining() {
+    return turntime - timer.getTime();
+}
+
 //outputs move information to the engine
 void State::makeMove(const Location &loc, int direction)
 {
