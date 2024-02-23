@@ -56,6 +56,8 @@ public:
     void setup();
     void reset();
 
+    double timeRemaining();
+
     void makeMove(const Location &loc, int direction);
 
     double distance(const Location &loc1, const Location &loc2);
