@@ -1,20 +1,23 @@
 #include "AStar.h"
 
+using namespace std;
+
 void AStar::SetGrid()
 {
-    for (int x = 0; x < _state.rows; x++)
-        for (int y = 0; y < _state.cols; y++)
+    _nodeGrid = std::vector<std::vector<Node>>(_state->rows, vector<Node>(_state->cols, Node()));
+    for (int x = 0; x < _state->rows; x++)
+        for (int y = 0; y < _state->cols; y++)
             _nodeGrid[x][y].position = Location(x, y);
 }
 
-vector<Location> AStar::GetPath(Location startLocation, Location destinationLocation) {
+vector<Location> AStar::GetPath(Location startLocation, Location destinationLocation) const {
     vector<Location> shortestPath;
-    if (IsDestination(startLocation, destinationLocation)) {
-        cout << "Destination reached already" << endl;
+    if (startLocation == destinationLocation) {
+        _state->bug << "Destination reached already" << endl;
         return shortestPath;
     }
     if (!IsLocationValid(destinationLocation)) {
-        cout << "Destination is not a valid target" << endl;
+        _state->bug << "Destination is not a valid target" << endl;
         return shortestPath;
     }
     //Innit node grid
@@ -39,7 +42,7 @@ vector<Location> AStar::GetPath(Location startLocation, Location destinationLoca
     while (!queuedNodes.empty())
     {
         //Sort queuedNodes so that the lowest fcost is last and we look it up first
-        sort(queuedNodes.begin(), queuedNodes.end(), [](Node* node1, Node* node2) { return node1->fCost > node2->fCost; });
+        sort(queuedNodes.begin(), queuedNodes.end(), [](const Node* node1, const Node* node2) { return node1->fCost > node2->fCost; });
         Node* currentNode = queuedNodes.back();
         queuedNodes.pop_back();
         reachedNodes.push_back(currentNode);
@@ -56,11 +59,11 @@ vector<Location> AStar::GetPath(Location startLocation, Location destinationLoca
 }
 
 float AStar::ManhattanDistance(Location currentLocation, Location destinationLocation) {
-    return abs(currentLocation.row - destinationLocation.row) + abs(currentLocation.col - destinationLocation.col);
+    return static_cast<float>(abs(currentLocation.row - destinationLocation.row) + abs(currentLocation.col - destinationLocation.col));
 }
 
 void AStar::ComputeHeuristicCost(Node* currentNode, Node* neighborNode) {
-    float heuristic = ManhattanDistance(currentNode->position, neighborNode->position);
+    const auto heuristic = ManhattanDistance(currentNode->position, neighborNode->position);
     if (currentNode->gCost + heuristic < neighborNode->gCost)
     {
         neighborNode->parentNode = currentNode;
@@ -69,44 +72,32 @@ void AStar::ComputeHeuristicCost(Node* currentNode, Node* neighborNode) {
     }
 }
 
-bool AStar::IsLocationValid(Location targetLocation) {
-    if(!_state.grid[targetLocation.row][targetLocation.col].isWater){
-        return true;
-    }
-    else {
-        return false;
-    }
+bool AStar::IsLocationValid(Location targetLocation) const {
+    return !_state->grid[targetLocation.row][targetLocation.col].isWater;
 }
 
-bool AStar::IsDestination(Location startLocation, Location destinationLocation) {
-    if (startLocation.row == destinationLocation.row && startLocation.col == destinationLocation.col) {
-        return true;
-    }
-    return false;
-}
-
-void AStar::BuildPath(vector<Location>& path, Node* currentNode, Location startLocation) {
+void AStar::BuildPath(vector<Location>& path, Node* currentNode, Location startLocation) const {
     path.push_back(currentNode->position);
     while (currentNode->position.row != startLocation.row && currentNode->position.col != startLocation.col)
     {
         currentNode = currentNode->parentNode;
         if (IsLocationValid(currentNode->position)) 
         {
-            path.push_back(Location(currentNode->position));
+            path.emplace_back(currentNode->position);
         }
         else if(!IsLocationValid(currentNode->position))
         {
-            std::vector<int> directions = _state.getDirections(path[path.size() - 1], startLocation);
-            Location temporaryLocation = _state.getLocation(startLocation, directions[0]);
+            std::vector<int> directions = _state->getDirections(path[path.size() - 1], startLocation);
+            const Location temporaryLocation = _state->getLocation(startLocation, directions[0]);
             if (IsLocationValid(temporaryLocation))
             {
-                path.push_back(_state.getLocation(path[path.size() - 1], directions[0]));
-                path.push_back(_state.getLocation(path[path.size() - 1], directions[0]));
+                path.push_back(_state->getLocation(path[path.size() - 1], directions[0]));
+                path.push_back(_state->getLocation(path[path.size() - 1], directions[0]));
             }
             else
             {
-                path.push_back(_state.getLocation(path[path.size() - 1], directions[1]));
-                path.push_back(_state.getLocation(path[path.size() - 1], directions[0]));
+                path.push_back(_state->getLocation(path[path.size() - 1], directions[1]));
+                path.push_back(_state->getLocation(path[path.size() - 1], directions[0]));
             }           
         }
     }
