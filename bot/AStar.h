@@ -1,6 +1,5 @@
 #pragma once
 #include "State.h"
-using namespace std;
 
 class AStar
 {
@@ -13,21 +12,28 @@ public:
         float gCost;
         float hCost;
         float fCost;
+
+        // for file debug log
+        friend std::ostream& operator <<(std::ostream& os, Node const& a)
+        {
+            return os << "Node: " << a.position << std::endl
+                << "Parent:" << a.parentNode->position << std::endl
+                << "Cost (g,h,f): " << a.gCost << ", " << a.hCost << ", " << a.fCost << std::endl << std::endl;
+        }
     };
 
-    AStar(State& state) : _state(state) {};
+    explicit AStar(State* state) : _state(state) {}
 
     void SetGrid();
 
-    vector<Location> GetPath(Location startLocation, Location destinationLocation);
+    std::vector<Location> GetPath(Location startLocation, Location destinationLocation) const;
 
 private:
 
-    float ManhattanDistance(Location currentLocation, Location destinationLocation);
-    void ComputeHeuristicCost(Node* currentNode, Node* neighborNode);
-    bool IsLocationValid(Location targetLocation);
-    bool IsDestination(Location startLocation, Location destinationLocation);
-    void BuildPath(vector<Location> &path, Node* currentNode, Location startLocation);
-    vector<vector<Node>> _nodeGrid;
-    State& _state;
+    static float ManhattanDistance(Location currentLocation, Location destinationLocation);
+    static void ComputeHeuristicCost(Node* currentNode, Node* neighborNode);
+    bool IsLocationValid(Location targetLocation) const;
+    void BuildPath(std::vector<Location>& path, Node* currentNode, Location startLocation) const;
+    std::vector<std::vector<Node>> _nodeGrid;
+    State* _state;
 };
