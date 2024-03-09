@@ -59,12 +59,15 @@ public:
     double timeRemaining();
 
     void makeMove(const Location &loc, int direction);
+    void fakeMove(const Location &loc, int direction);
+    void undoFakeMove(const Location &loc, int direction);
 
     double EuclideanDistance(const Location &loc1, const Location &loc2) const;
     float ManhattanDistance(Location current, Location destination) const;
     Location getLocation(const Location &startLoc, int direction);
     std::vector<int> getDirections(Location l1, Location l2);
     bool isUnoccupied(const Location &loc) const;
+    bool fakeIsUnoccupied(const Location &loc) const;
 
     void updateVisionInformation();
 };

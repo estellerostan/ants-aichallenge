@@ -36,4 +36,9 @@ inline bool operator==(Location const& left, Location const& right)
 	return left.row == right.row && left.col == right.col;
 }
 
+inline bool operator!=(Location const& left, Location const& right)
+{
+	return left.row != right.row && left.col != right.col;
+}
+
 #endif //LOCATION_H_

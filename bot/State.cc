@@ -51,6 +51,22 @@ void State::makeMove(const Location &loc, int direction)
     grid[loc.row][loc.col].ant = -1;
 };
 
+//DOES NOT output move information to the engine
+void State::fakeMove(const Location& loc, int direction)
+{
+    const Location nLoc = getLocation(loc, direction);
+    grid[nLoc.row][nLoc.col].ant = grid[loc.row][loc.col].ant;
+    grid[loc.row][loc.col].ant = -1;
+};
+
+// always use this after fakeMove to not mess up the state
+void State::undoFakeMove(const Location& loc, int direction)
+{
+    const Location nLoc = getLocation(loc, direction);
+    grid[loc.row][loc.col].ant = grid[nLoc.row][nLoc.col].ant;
+    grid[nLoc.row][nLoc.col].ant = -1;
+};
+
 //returns the euclidean distance between two locations with the edges wrapped
 double State::EuclideanDistance(const Location &loc1, const Location &loc2) const
 {
@@ -131,6 +147,13 @@ std::vector<int> State::getDirections(Location l1, Location l2) {
 bool State::isUnoccupied(const Location &loc) const
 {
     return !grid[loc.row][loc.col].isWater && !grid[loc.row][loc.col].isMyAnt;
+}
+
+bool State::fakeIsUnoccupied(const Location& loc) const
+{
+    // isUnoccupied can't be used because isMyAnt waits for the turn to be played
+    // Note: grid[loc.row][loc.col].ant == 0 is own ant, > 1 are enemies.
+    return !grid[loc.row][loc.col].isWater && grid[loc.row][loc.col].ant != 0;
 }
 
 /*

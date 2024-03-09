@@ -31,9 +31,10 @@ void Bot::makeMoves()
 	state.bug << "turn " << state.turn << ":" << endl;
 	state.bug << state << endl;
 
-	setup();
-	gatherFood();
-	attackHills();
+    setup();
+    gatherFood();
+    attackHills();
+    attackAnts();
 	// TODO: fix perf problems for large maps (of 6p with time taken > 100ms)
 	// explore unseen areas
 	exploreMap();
@@ -85,8 +86,10 @@ void Bot::makeMoves()
 
 void Bot::setup()
 {
-	orders.clear();
-	targets.clear();
+    orders.clear();
+    targets.clear();
+    myAnts.clear();
+    enemyAnts.clear();
 
 	// add all locations to unseen tiles set, run once
 	// necessary for Bot::exploreMap
@@ -118,7 +121,6 @@ void Bot::setup()
 		orders[myHill] = Location(-1, -1);
 	}
 }
-
 
 void Bot::gatherFood()
 {
@@ -231,6 +233,149 @@ void Bot::attackHills()
 	}
 }
 
+void Bot::attackAnts()
+{
+    // TODO: finish minimix: group ants by attacks
+    //for (Location ant : state.myAnts)
+    //{
+    //    if (ant.row == 28) continue;
+
+    //    const bool hasMove = containsValue(orders, ant);
+    //    if (hasMove) continue;
+    //    myAnts.push_back(new Ant(ant));
+    //}
+
+    //for (Location ant : state.enemyAnts)
+    //{
+    //    if (ant.row == 14) continue;
+    //    enemyAnts.push_back(new Ant(ant));
+    //}
+
+    // minimax algorithm adapted from http://www.xathis.com//posts/ai-challenge-2011-ants.html
+    bestValue = -range;
+    // TODO: optimize minimax for large groups of ants and lots of attacks at once.
+    miniMaxMax(0);
+    for (const Ant* myAnt : myAnts) {
+        if (myAnt->bestDest != Location(-1, -1)) makeMove(myAnt->loc, myAnt->bestDest); // else?
+    }
+}
+
+// Always start with maximizing player = own ants
+void Bot::miniMaxMax(int antIndex)
+{
+    if (state.timeRemaining() < 200) {
+        state.bug << "minimax timeout" << endl;
+        return;
+    }
+
+    if (antIndex < static_cast<int>(myAnts.size()))
+    {
+        Ant* myAnt = myAnts[antIndex];
+        // TODO: optimize/ skip directions
+        for (int d = 0; d < TDIRECTIONS; d++)
+        {
+            const Location newLoc = state.getLocation(myAnt->loc, d);
+            if (state.fakeIsUnoccupied(newLoc)) {
+                state.fakeMove(myAnt->loc, d);
+                myAnt->dest = newLoc;
+                miniMaxMax(antIndex + 1);
+                state.undoFakeMove(myAnt->loc, d);
+            }
+        }
+    }
+    else
+    {
+        const int value = miniMaxMin(0);
+        if (value > bestValue)
+        {
+            bestValue = value;
+            // save the current best moves of own ants
+            for (Ant* ant : myAnts) {
+                ant->bestDest = ant->dest;
+            }
+        }
+    }
+}
+
+int Bot::miniMaxMin(int antIndex)
+{
+    if (antIndex < static_cast<int>(enemyAnts.size()))
+    {
+        int minBestValue = +range;
+        Ant* enemyAnt = enemyAnts[antIndex];
+        // TODO: optimize/ skip directions
+        for (int d = 0; d < TDIRECTIONS; d++)
+        {
+            const Location newLoc = state.getLocation(enemyAnt->loc, d);
+            if (state.fakeIsUnoccupied(newLoc)) {
+                state.fakeMove(enemyAnt->loc, d);
+                enemyAnt->dest = newLoc;
+                const int value = miniMaxMin(antIndex + 1);
+                state.undoFakeMove(enemyAnt->loc, d);
+                if (value < bestValue)
+                {
+                    return -range;
+                }
+                if (value < minBestValue)
+                {
+                    minBestValue = value;
+                }
+            }
+        }
+        return minBestValue;
+    }
+
+    return minMaxEvaluate();
+}
+
+int Bot::minMaxEvaluate()
+{
+    int nbDeadEnemies = 0;
+    int nbDeadAnts = 0;
+    for (Ant* enemyAnt : enemyAnts)
+    {
+        enemyAnt->isDead = false;
+        enemyAnt->nbAttackers = 0;
+        for (Ant* ant : myAnts)
+        {
+            if (ant->dest == Location(-1, -1)) return -range;
+            const auto dist = state.distance(ant->dest, enemyAnt->dest);
+            if (dist <= 2) // TODO: change distance to kill?
+            {
+                ant->nbAttackers++;
+                enemyAnt->nbAttackers++;
+            }
+        }
+    }
+
+    for (Ant* ant : myAnts)
+    {
+        if (ant->nbAttackers != 0) {
+            for (Ant* enemyAnt : enemyAnts)
+            {
+                const auto dist = state.distance(ant->dest, enemyAnt->dest);
+                if (enemyAnt->nbAttackers == 0 || dist > 2) {
+                    // not in a fight
+                    continue;
+                }
+                if (!enemyAnt->isDead && enemyAnt->nbAttackers >= ant->nbAttackers) {
+                    nbDeadEnemies++;
+                    enemyAnt->isDead = true;
+                }
+                if (!ant->isDead && ant->nbAttackers >= enemyAnt->nbAttackers) {
+                    nbDeadAnts++;
+                    ant->isDead = true;
+                }
+            }
+            ant->isDead = false;
+            ant->nbAttackers = 0;
+        }
+    }
+
+    // check for number of dead enemy ants minus own ants to see who wins this fight
+    // TODO: avoid 1v1? where nbDeadEnemies - nbDeadAnts is 1 - 1 == 0 (what about 2v2, 3v3, ...?)
+    return nbDeadEnemies - nbDeadAnts;
+}
 
 bool Bot::containsValue(std::map<Location, Location>& locMap, const Location& antLoc)
 {

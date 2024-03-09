@@ -125,6 +125,7 @@
     <ClCompile Include="State.cc" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Ant.h" />
     <ClInclude Include="AStar.h" />
     <ClInclude Include="Bot.h" />
     <ClInclude Include="Bug.h" />
