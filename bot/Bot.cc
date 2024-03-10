@@ -1,4 +1,5 @@
 #include "Bot.h"
+#include "AStar.h"
 
 using namespace std;
 
@@ -38,6 +39,17 @@ void Bot::makeMoves()
     // explore unseen areas
     exploreMap();
     unblockHills();
+
+    //TEST AStar
+    AStar aStar = AStar(state);
+    aStar.SetGrid();
+    auto res = aStar.GetPath(Location(0, 7), Location(10, 10));
+    state.bug << "astar:" << res.size() << endl;
+    for (auto re : res)
+    {
+        state.bug << "astar:" << re << endl;
+    }
+    //END TEST AStar
 
     state.bug << "time taken: " << state.timer.getTime() << "ms" << endl << endl;
 }
