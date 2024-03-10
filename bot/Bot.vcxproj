@@ -121,6 +121,7 @@
   <ItemGroup>
     <ClCompile Include="AStar.cpp" />
     <ClCompile Include="Bot.cc" />
+    <ClCompile Include="MiniMax.cpp" />
     <ClCompile Include="MyBot.cc" />
     <ClCompile Include="State.cc" />
   </ItemGroup>
@@ -130,6 +131,7 @@
     <ClInclude Include="Bot.h" />
     <ClInclude Include="Bug.h" />
     <ClInclude Include="Location.h" />
+    <ClInclude Include="MiniMax.h" />
     <ClInclude Include="Square.h" />
     <ClInclude Include="State.h" />
     <ClInclude Include="Timer.h" />

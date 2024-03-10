@@ -6,6 +6,7 @@
 #include <set>
 
 #include "Ant.h"
+#include "MiniMax.h"
 
 /*
 	This struct represents your bot in the game of Ants
@@ -18,14 +19,8 @@ struct Bot
 	std::set<Location> unseenTiles;
 	std::set<Location> enemyHills;
 
-
-	// TODO: move declarations in their own class
-	std::vector<Ant*> myAnts;
-	std::vector<Ant*> enemyAnts;
-	int range = 99999;
-	int bestValue = -range;
-
 	State state;
+	MiniMax miniMax;
 
 	Bot();
 
@@ -40,9 +35,6 @@ struct Bot
 	void attackHills();
 	// TODO: move functions in their own class
 	void attackAnts();
-	int miniMaxMin(int antIndex);
-	void miniMaxMax(int antIndex);
-	int minMaxEvaluate();
 	bool makeMove(const Location& loc, const Location& dest); // makes a move following a destination for a single ant
 	bool makeMove(const Location& loc, int direction); // makes a move to a direction for a single ant
 	void endTurn();     //indicates to the engine that it has made its moves
