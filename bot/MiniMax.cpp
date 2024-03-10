@@ -15,7 +15,7 @@ MiniMax::MiniMax(State* state) : _state(state)
 void MiniMax::Max(int antIndex)
 {
     if (_state->timeRemaining() < 200) {
-        _state->bug << "minimax timeout" << std::endl;
+        _state->bug << "minimax (max) timeout" << std::endl;
         return;
     }
 
@@ -50,6 +50,11 @@ void MiniMax::Max(int antIndex)
 
 int MiniMax::Min(int antIndex)
 {
+    if (_state->timeRemaining() < 200) {
+        _state->bug << "minimax (min) timeout" << std::endl;
+        return bestValue;
+    }
+
     if (antIndex < static_cast<int>(enemyAnts.size()))
     {
         int minBestValue = +range;

@@ -143,63 +143,63 @@ void Bot::gatherFood()
 		Location antLoc = std::get<1>(res);
 		Location foodLoc = std::get<2>(res);
 
-		// if food has no ant gathering it and ant has no task
-		const bool isAntBusyWithFood = containsValue(targets, antLoc);
-		if (targets.count(foodLoc) == 0 && !isAntBusyWithFood) {
-			makeMove(antLoc, foodLoc);
-		}
-	}
+        // if food has no ant gathering it and ant has no task
+        const bool isAntBusyWithFood = containsValue(targets, antLoc);
+        if (targets.count(foodLoc) == 0 && !isAntBusyWithFood) {
+            makeMove(antLoc, foodLoc, "gather food");
+        }
+    }
 }
 
 void Bot::unblockHills()
 {
-	for (Location hillLoc : state.myHills)
-	{
-		auto it = std::find(state.myAnts.cbegin(), state.myAnts.cend(), hillLoc);
-		const bool hasMove = containsValue(orders, hillLoc);
-		if (it != state.myAnts.end() && !hasMove)
-		{
-			// an ant is on a hill
-			for (int d = 0; d < TDIRECTIONS; d++)
-			{
-				if (makeMove(hillLoc, d))
-				{
-					break;
-				}
-			}
-		}
-	}
+    for (Location hillLoc : state.myHills)
+    {
+        auto it = std::find(state.myAnts.cbegin(), state.myAnts.cend(), hillLoc);
+        const bool hasMove = containsValue(orders, hillLoc);
+        if (it != state.myAnts.end() && !hasMove)
+        {
+            // an ant is on a hill
+            for (int d = 0; d < TDIRECTIONS; d++)
+            {
+                if (makeMove(hillLoc, d, "unblock hills"))
+                {
+                    break;
+                }
+            }
+        }
+    }
 }
 
 void Bot::exploreMap()
 {
-	for (Location antLoc : state.myAnts)
-	{
-		const bool hasMove = containsValue(orders, antLoc);
-		if (!hasMove)
-		{
-			std::vector<std::tuple<int, Location>> unseenDist;
-			for (Location unseenLoc : unseenTiles)
-			{
-				auto dist = state.EuclideanDistance(antLoc, unseenLoc);
-				unseenDist.emplace_back(dist, unseenLoc);
-				// avoid timeout, even if the search is not complete
-				// better than being removed from the game
+    for (Location antLoc : state.myAnts)
+    {
+        const bool hasMove = containsValue(orders, antLoc);
+        if (!hasMove)
+        {
+            std::vector<std::tuple<int, Location>> unseenDist;
+            for (Location unseenLoc : unseenTiles)
+            {
+                auto dist = state.EuclideanDistance(antLoc, unseenLoc);
+                unseenDist.emplace_back(dist, unseenLoc);
+                // avoid timeout, even if the search is not complete
+                // better than being removed from the game
 				if (state.timeRemaining() < 200) {
 					state.bug << "explore " << endl;
 					break;
 				}
-			}
-			std::sort(unseenDist.begin(), unseenDist.end());
-			for (auto res : unseenDist)
-			{
-				Location unseenLoc = std::get<1>(res);
-				if (makeMove(antLoc, unseenLoc)) {
-					break;
-				}
-			}
-		}
-	}
+            }
+            std::sort(unseenDist.begin(), unseenDist.end());
+            for (auto res : unseenDist) 
+            {
+                Location unseenLoc = std::get<1>(res);
+                if (makeMove(antLoc, unseenLoc, "explore")) {
+                    break;
+                }
+            }
+        }
+    }
 }
 
 void Bot::attackHills()
@@ -212,51 +212,78 @@ void Bot::attackHills()
 		}
 	}
 
-	std::vector<std::tuple<double, Location, Location>> antDistToHill;
-	for (auto hillLoc : enemyHills)
-	{
-		for (Location antLoc : state.myAnts)
-		{
-			const bool hasMove = containsValue(orders, antLoc);
-			if (!hasMove) {
-				auto dist = state.EuclideanDistance(antLoc, hillLoc);
-				antDistToHill.emplace_back(dist, antLoc, hillLoc);
-			}
-		}
-	}
-	std::sort(antDistToHill.begin(), antDistToHill.end());
-	for (auto res : antDistToHill)
-	{
-		Location antLoc = std::get<1>(res);
-		Location hillLoc = std::get<2>(res);
-		makeMove(antLoc, hillLoc);
-	}
+    std::vector<std::tuple<double, Location, Location>> antDistToHill;
+    for (auto hillLoc : enemyHills)
+    {
+        for (Location antLoc : state.myAnts)
+        {
+            const bool hasMove = containsValue(orders, antLoc);
+            if (!hasMove) {
+                auto dist = state.EuclideanDistance(antLoc, hillLoc);
+                antDistToHill.emplace_back(dist, antLoc, hillLoc);
+            }
+        }
+    }
+    std::sort(antDistToHill.begin(), antDistToHill.end());
+    for (auto res : antDistToHill)
+    {
+        Location antLoc = std::get<1>(res);
+        Location hillLoc = std::get<2>(res);
+        makeMove(antLoc, hillLoc, "attack hills");
+    }
 }
 
 void Bot::attackAnts()
 {
-    // TODO: finish minimix: group ants by attacks
-	//for (Location ant : state.myAnts)
- //   {
- //       if (ant.row == 28) continue;
+    // minimax: group ants by attacks
+    std::vector<std::tuple<double, Location, Location>> attackGroups;
+    for (Location enemyAnt : state.enemyAnts)
+    {
+        for (Location antLoc : state.myAnts)
+        {
+            const bool hasMove = containsValue(orders, antLoc);
+            if (!hasMove) {
+                auto dist = state.EuclideanDistance(antLoc, enemyAnt);
+                if (dist <= 6) // TODO: or another number?
+                {
+                    auto position = find_if(attackGroups.begin(), attackGroups.end(),
+                        [=](auto item)
+                        {
+                            return get< 1 >(item) == antLoc;
+                        });
 
- //       const bool hasMove = containsValue(orders, ant);
- //       if (hasMove) continue;
- //       miniMax.myAnts.push_back(new Ant(ant));
- //   }
+                    if (position != attackGroups.end())
+                    {
+                        // avoid duplicates somehow
+                        //state.bug << "dup? " << antLoc << endl;
+                        continue;
+                    }
 
- //   for (Location ant : state.enemyAnts)
- //   {
- //       if (ant.row == 14) continue;
- //       miniMax.enemyAnts.push_back(new Ant(ant));
- //   }
+                    // TODO: restrict size of attack groups by location instead of by the size of the vector to avoid timeouts
+                    // the vector should be split by zones to do that
+                    if (attackGroups.size() > 5) continue;
+                        
+                    attackGroups.emplace_back(dist, antLoc, enemyAnt);
+                }
+            }
+        }
+    }
+
+    for (auto res : attackGroups)
+    {
+        const Location antLoc = std::get<1>(res);
+        const Location enemyLoc = std::get<2>(res);
+        miniMax.myAnts.push_back(new Ant(antLoc));
+        miniMax.enemyAnts.push_back(new Ant(enemyLoc));
+        //state.bug << antLoc << " vs " << enemyLoc << endl;
+    }
 
     // minimax algorithm adapted from http://www.xathis.com//posts/ai-challenge-2011-ants.html
     miniMax.bestValue = -miniMax.range;
     // TODO: optimize minimax for large groups of ants and lots of attacks at once.
     miniMax.Max(0);
     for (const Ant* myAnt : miniMax.myAnts) {
-        if (myAnt->bestDest != Location(-1, -1)) makeMove(myAnt->loc, myAnt->bestDest); // else?
+        if (myAnt->bestDest != Location(-1, -1)) makeMove(myAnt->loc, myAnt->bestDest, "attack ants"); // else?
     }
 }
 
@@ -277,22 +304,23 @@ bool Bot::containsValue(std::map<Location, Location>& locMap, const Location& an
 	return false;
 }
 
-bool Bot::makeMove(const Location& loc, const Location& dest) {
-	const std::vector<int> directions = state.getDirections(loc, dest);
 
-	for (const int d : directions)
-	{
-		if (makeMove(loc, d))
-		{
-			targets[dest] = loc;
-			return true;
-		}
-	}
+bool Bot::makeMove(const Location& loc, const Location& dest, const string& from) {
+    const std::vector<int> directions = state.getDirections(loc, dest);
+
+    for (const int d : directions)
+    {
+	    if (makeMove(loc, d, from))
+	    {
+		    targets[dest] = loc;
+		    return true;
+	    }
+    }
 
 	return false;
 };
 
-bool Bot::makeMove(const Location& loc, const int direction)
+bool Bot::makeMove(const Location& loc, const int direction, const string& from)
 {
 	const Location newLoc = state.getLocation(loc, direction);
 
@@ -302,10 +330,15 @@ bool Bot::makeMove(const Location& loc, const int direction)
 		return false;
 	}
 
-	state.makeMove(loc, direction);
-	orders[newLoc] = loc;
-	//state.bug << "move: " << loc << " " << direction << " " << newLoc << "\n";
-	return true;
+    state.makeMove(loc, direction);
+    orders[newLoc] = loc;
+
+    // debug
+    if (!from.empty()) {
+        state.bug << "move from " << from << ": " << loc << " (" << CDIRECTIONS[direction] << ") to " << newLoc << "\n";
+    }
+
+    return true;
 };
 
 //finishes the turn
