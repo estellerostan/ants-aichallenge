@@ -32,7 +32,7 @@ vector<Location> AStar::GetPath(Location startLocation, Location destinationLoca
         for (int y = 0; y < searchGrid[x].size(); y++)
         {
             searchGrid[x][y].hCost = ManhattanDistance(Location(x, y), destinationLocation);
-            //searchGrid[x][y].gCost = 100;
+            searchGrid[x][y].gCost = 10;
         }
     }
         
@@ -63,6 +63,7 @@ vector<Location> AStar::GetPath(Location startLocation, Location destinationLoca
         //If we reached the destination location
         if (currentNode->position == destinationLocation)
         {
+            _state.bug << "FOUND SHORTEST PATH" << endl;
             BuildPath(shortestPath, currentNode, startLocation);
         }
         //If not, we explore the neighbor nodes
@@ -93,9 +94,16 @@ vector<Location> AStar::GetPath(Location startLocation, Location destinationLoca
 
                 Node* neighborNode = &searchGrid[neighborNodeRow][neighborNodeCol];
 
+                if ((abs(x) + abs(y) >= 2)) 
+                {
+                    reachedNodes.push_back(neighborNode);
+                    continue;
+                }
+                //if(neighborNode->gCost == 0 && find(reachedNodes.begin(), reachedNodes.end(), neighborNode) == reachedNodes.end() && find(queuedNodes.begin(), queuedNodes.end(), neighborNode) == queuedNodes.end()) neighborNode->gCost = 50;
                 _state.bug << "neighbor " << *neighborNode;
 
-                //If the neighbor node is not a water tile, we analyse it
+
+                //If the neighbor node is not a water tile and not a diagonale, we analyse it
                 if (IsLocationValid(neighborNode->position))
                 {
                     // If the neighbor node has not been reached and is not in queue for analysis yet
@@ -105,7 +113,6 @@ vector<Location> AStar::GetPath(Location startLocation, Location destinationLoca
                         float const previousCost = neighborNode->gCost;
                         ComputeHeuristicCost(currentNode, neighborNode);
                         _state.bug << "gCost " << neighborNode->gCost << " vs " << previousCost << endl;
-                        //BUG
                         if (neighborNode->gCost < previousCost)
                         {
                             _state.bug << "QUEUE BEING FILLED" << *neighborNode;
@@ -116,7 +123,6 @@ vector<Location> AStar::GetPath(Location startLocation, Location destinationLoca
                             }
                             queuedNodes.push_back(neighborNode);
                         }
-                        //END BUG
                     }
                 }
                 //If the neighbor node cannot be analyzed
@@ -127,15 +133,20 @@ vector<Location> AStar::GetPath(Location startLocation, Location destinationLoca
             }
         }
         //Debug
-        for (auto reached_node : reachedNodes)
+        /*for (auto reached_node : reachedNodes)
         {
             _state.bug << "reached " << *reached_node << endl;
         }
         for (auto queued_node : queuedNodes)
         {
             _state.bug << "queued " << *queued_node << endl;
-        }
+        }*/
         //END: EXPLORATION OF NEIGHBOR NODES
+    }
+    _state.bug << "Shortest path:" << endl;
+    for (auto path_node : shortestPath) 
+    {
+        _state.bug << "Location: " << path_node.row << "," << path_node.col<< endl;
     }
     return shortestPath;
 }

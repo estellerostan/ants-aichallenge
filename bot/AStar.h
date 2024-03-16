@@ -35,4 +35,5 @@ private:
     void BuildPath(std::vector<Location>& path, Node* currentNode, Location startLocation) const;
     std::vector<std::vector<Node>> _nodeGrid;
     State& _state;
+    
 };
