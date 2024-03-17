@@ -1,7 +1,5 @@
 #include "Bot.h"
-#include "AStar.h"
-#include "AStarV2.h"
-#include "Pathfinding.h"
+
 using namespace std;
 
 //constructor
@@ -17,6 +15,10 @@ void Bot::playGame()
 	cin >> state;
 	state.setup();
 	endTurn();
+
+	behaviorTree.insert(pair<Behavior, AntBehavior*>(explore, new AntBehavior(this)));
+	behaviorTree.insert(pair<Behavior, AntBehavior*>(gather_food, new FoodHunt(this)));
+	behaviorTree.insert(pair<Behavior, AntBehavior*>(attack_ants, new Attack(this)));
 
 	//continues making moves while the game is not over
 	while (cin >> state)
@@ -34,29 +36,31 @@ void Bot::makeMoves()
 	state.bug << state << endl;
 
 	setup();
-	gatherFood();
-	attackHills();
+	AntBehavior* currentAntBehavior = behaviorTree.at(currentBehavior);
+	const int numberOfAnts = currentAntBehavior->_bot->state.myAnts.size();
+
+	switch (currentAntBehavior->_currentBehavior)
+	{
+	case gather_food:
+		if (numberOfAnts > 30) currentBehavior = attack_ants;
+		//// Uncomment this to allow to go to defend state, when it will be done
+		//else if(nbAnts < 10) gameState = Defense;
+		break;
+	case explore:
+		if (numberOfAnts > 10) currentBehavior = gather_food;
+		break;
+	case attack_ants:
+		if (numberOfAnts < 30) currentBehavior = gather_food;
+		break;
+	}
+
+	currentAntBehavior->MakeMoves();
+	//gatherFood();
+	//attackHills();
 	// TODO: fix perf problems for large maps (of 6p with time taken > 100ms)
 	// explore unseen areas
-	exploreMap();
-	unblockHills();
-
-	//TEST AStar
-	/*AStar aStar = AStar(state);
-	aStar.SetGrid();
-	auto res = aStar.GetPath(Location(0, 7), Location(10, 10));
-	state.bug << "astar:" << res.size() << endl;
-	for (auto re : res)
-	{
-		state.bug << "astar:" << re << endl;
-	}*/
-	//END TEST AStar
-	
-	//TEST AStarV2
-	//AStarV2 aStar = AStarV2(state);
-	//auto res = aStar.GetPath(Location(0, 7), Location(10, 10));
-	//state.bug << "astar:" << res.size() << endl;
-	//END TEST AStarV2
+	//exploreMap();
+	//unblockHills();
 
 	//TEST Pathfinding
 	Pathfinding aStar = Pathfinding(state);
@@ -104,82 +108,82 @@ void Bot::setup()
 }
 
 
-void Bot::gatherFood()
-{
-	std::vector<std::tuple<double, Location, Location>> antDist;
-	// find close food
-	for (auto foodLoc : state.food)
-	{
-		for (Location antLoc : state.myAnts)
-		{
-			auto dist = state.distance(antLoc, foodLoc);
+//void Bot::gatherFood()
+//{
+//	std::vector<std::tuple<double, Location, Location>> antDist;
+//	// find close food
+//	for (auto foodLoc : state.food)
+//	{
+//		for (Location antLoc : state.myAnts)
+//		{
+//			auto dist = state.distance(antLoc, foodLoc);
+//
+//			antDist.emplace_back(dist, antLoc, foodLoc);
+//		}
+//	}
+//
+//	std::sort(antDist.begin(), antDist.end());
+//
+//	for (auto res : antDist)
+//	{
+//		Location antLoc = std::get<1>(res);
+//		Location foodLoc = std::get<2>(res);
+//
+//		// if food has no ant gathering it and ant has no task
+//		const bool isAntBusyWithFood = containsValue(targets, antLoc);
+//		if (targets.count(foodLoc) == 0 && !isAntBusyWithFood) {
+//			makeMove(antLoc, foodLoc);
+//		}
+//	}
+//}
 
-			antDist.emplace_back(dist, antLoc, foodLoc);
-		}
-	}
+//void Bot::unblockHills()
+//{
+//	for (Location hillLoc : state.myHills)
+//	{
+//		auto it = std::find(state.myAnts.cbegin(), state.myAnts.cend(), hillLoc);
+//		const bool hasMove = containsValue(orders, hillLoc);
+//		if (it != state.myAnts.end() && !hasMove)
+//		{
+//			// an ant is on a hill
+//			for (int d = 0; d < TDIRECTIONS; d++)
+//			{
+//				if (makeMove(hillLoc, d))
+//				{
+//					break;
+//				}
+//			}
+//		}
+//	}
+//}
 
-	std::sort(antDist.begin(), antDist.end());
-
-	for (auto res : antDist)
-	{
-		Location antLoc = std::get<1>(res);
-		Location foodLoc = std::get<2>(res);
-
-		// if food has no ant gathering it and ant has no task
-		const bool isAntBusyWithFood = containsValue(targets, antLoc);
-		if (targets.count(foodLoc) == 0 && !isAntBusyWithFood) {
-			makeMove(antLoc, foodLoc);
-		}
-	}
-}
-
-void Bot::unblockHills()
-{
-	for (Location hillLoc : state.myHills)
-	{
-		auto it = std::find(state.myAnts.cbegin(), state.myAnts.cend(), hillLoc);
-		const bool hasMove = containsValue(orders, hillLoc);
-		if (it != state.myAnts.end() && !hasMove)
-		{
-			// an ant is on a hill
-			for (int d = 0; d < TDIRECTIONS; d++)
-			{
-				if (makeMove(hillLoc, d))
-				{
-					break;
-				}
-			}
-		}
-	}
-}
-
-void Bot::exploreMap()
-{
-	for (Location antLoc : state.myAnts)
-	{
-		const bool hasMove = containsValue(orders, antLoc);
-		if (!hasMove)
-		{
-			std::vector<std::tuple<int, Location>> unseenDist;
-			for (Location unseenLoc : unseenTiles)
-			{
-				auto dist = state.distance(antLoc, unseenLoc);
-				unseenDist.emplace_back(dist, unseenLoc);
-				// avoid timeout, even if the search is not complete
-				// better than being removed from the game
-				if (state.timeRemaining() < 200) break;
-			}
-			std::sort(unseenDist.begin(), unseenDist.end());
-			for (auto res : unseenDist)
-			{
-				Location unseenLoc = std::get<1>(res);
-				if (makeMove(antLoc, unseenLoc)) {
-					break;
-				}
-			}
-		}
-	}
-}
+//void Bot::exploreMap()
+//{
+//	for (Location antLoc : state.myAnts)
+//	{
+//		const bool hasMove = containsValue(orders, antLoc);
+//		if (!hasMove)
+//		{
+//			std::vector<std::tuple<int, Location>> unseenDist;
+//			for (Location unseenLoc : unseenTiles)
+//			{
+//				auto dist = state.distance(antLoc, unseenLoc);
+//				unseenDist.emplace_back(dist, unseenLoc);
+//				// avoid timeout, even if the search is not complete
+//				// better than being removed from the game
+//				if (state.timeRemaining() < 200) break;
+//			}
+//			std::sort(unseenDist.begin(), unseenDist.end());
+//			for (auto res : unseenDist)
+//			{
+//				Location unseenLoc = std::get<1>(res);
+//				if (makeMove(antLoc, unseenLoc)) {
+//					break;
+//				}
+//			}
+//		}
+//	}
+//}
 
 void Bot::attackHills()
 {

@@ -5,11 +5,26 @@
 #include <map>
 #include <set>
 
+#include "AStar.h"
+#include "AStarV2.h"
+#include "Pathfinding.h"
+
+#include "AntBehavior.h"
+#include "FoodHunt.h"
+#include "Attack.h"
+
+
 /*
 	This struct represents your bot in the game of Ants
 */
 struct Bot
 {
+	enum Behavior
+	{
+		explore = 0,
+		attack_ants = 1,
+		gather_food = 2,
+	};
 
 	std::map<Location, Location> orders;
 	std::map<Location, Location> targets;
@@ -18,6 +33,10 @@ struct Bot
 	std::set<Location> myHills;
 
 	State state;
+
+	Behavior currentBehavior = gather_food;
+	//Ordered by priority
+	std::map<Behavior, AntBehavior*> behaviorTree;
 
 	Bot();
 

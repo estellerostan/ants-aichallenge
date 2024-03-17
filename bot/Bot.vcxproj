@@ -119,18 +119,24 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="AntBehavior.cpp" />
     <ClCompile Include="AStar.cpp" />
     <ClCompile Include="AStarV2.cpp" />
+    <ClCompile Include="Attack.cpp" />
     <ClCompile Include="Bot.cc" />
+    <ClCompile Include="FoodHunt.cpp" />
     <ClCompile Include="MyBot.cc" />
     <ClCompile Include="Pathfinding.cpp" />
     <ClCompile Include="State.cc" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="AntBehavior.h" />
     <ClInclude Include="AStar.h" />
     <ClInclude Include="AStarV2.h" />
+    <ClInclude Include="Attack.h" />
     <ClInclude Include="Bot.h" />
     <ClInclude Include="Bug.h" />
+    <ClInclude Include="FoodHunt.h" />
     <ClInclude Include="Location.h" />
     <ClInclude Include="Pathfinding.h" />
     <ClInclude Include="Square.h" />
