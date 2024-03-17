@@ -2,17 +2,17 @@
 
 
 
-std::vector<Location> AStarV2::reconstruct_path(Location start, Location goal, std::map<Location, Location> came_from)
+std::vector<Location> AStarV2::Reconstruct_path(Location start, Location goal, std::map<Location, Location> cameFrom)
 {
     _state.bug << "Building path" << std::endl;
     std::vector<Location> path;
     Location current = goal;
-    if (came_from.find(goal) == came_from.end()) {
+    if (cameFrom.find(goal) == cameFrom.end()) {
         return path; // no path can be found
     }
     while (current.row != start.row || current.col != start.col) {
         path.push_back(current);
-        current = came_from[current];
+        current = cameFrom[current];
     }
     path.push_back(start);
     std::reverse(path.begin(), path.end());
@@ -25,13 +25,13 @@ std::vector<Location> AStarV2::reconstruct_path(Location start, Location goal, s
     return path;
 }
 
-void AStarV2::a_star_search(Location start, Location goal, std::map<Location, Location>& came_from, std::map<Location, double>& cost_so_far)
+void AStarV2::A_star_search(Location start, Location goal, std::map<Location, Location>& cameFrom, std::map<Location, double>& costSoFar)
 {
     std::vector<std::pair<Location, double>> frontier;
     std::vector<Location> reached;
     frontier.push_back(std::make_pair(start, 0));
-    came_from[start] = start;
-    cost_so_far[start] = 0;
+    cameFrom[start] = start;
+    costSoFar[start] = 0;
 
     while (!frontier.empty()) {
         sort(frontier.begin(), frontier.end(), [=](std::pair<Location, double>& a, std::pair<Location, double>& b)
@@ -93,30 +93,30 @@ void AStarV2::a_star_search(Location start, Location goal, std::map<Location, Lo
         }
         for (Location next : neighbors) {
             _state.bug << "Current Location: " << current.row << "," << current.col << "Neighbor: " << next.row << "," << next.col << std::endl;
-            bool isInReachedOrFrontier = false;
+            bool bisInReachedOrFrontier = false;
             for (Location reachedLoc : reached) 
             {
                 if (next == reachedLoc)
                 {
-                    isInReachedOrFrontier = true;
+                    bisInReachedOrFrontier = true;
                 }
             }
             for (std::pair<Location, double> frontierLoc : frontier)
             {
                 if (next == frontierLoc.first)
                 {
-                    isInReachedOrFrontier = true;
+                    bisInReachedOrFrontier = true;
                 }
             }
             
-            if (isInReachedOrFrontier == false) 
+            if (bisInReachedOrFrontier == false) 
             {
-                double new_cost = cost_so_far[current] + Heuristic(current, next);
-                if (cost_so_far.find(next) == cost_so_far.end() || new_cost < cost_so_far[next]) {
-                    cost_so_far[next] = new_cost;
+                double new_cost = costSoFar[current] + Heuristic(current, next);
+                if (costSoFar.find(next) == costSoFar.end() || new_cost < costSoFar[next]) {
+                    costSoFar[next] = new_cost;
                     double priority = new_cost + ManhattanDistance(next, goal);
                     frontier.push_back(std::make_pair(next, priority));
-                    came_from[next] = current;
+                    cameFrom[next] = current;
                 }
             }
 
@@ -129,8 +129,8 @@ std::vector<Location> AStarV2::GetPath(Location startLocation, Location destinat
     _state.bug << "Get path started" << std::endl;
     std::map<Location, Location> came_from;
     std::map<Location, double> cost_so_far;
-    a_star_search(startLocation, destinationLocation, came_from, cost_so_far);
-    return reconstruct_path(startLocation, destinationLocation, came_from);
+    A_star_search(startLocation, destinationLocation, came_from, cost_so_far);
+    return Reconstruct_path(startLocation, destinationLocation, came_from);
 }
 
 bool AStarV2::IsLocationValid(Location targetLocation)

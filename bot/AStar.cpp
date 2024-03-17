@@ -67,7 +67,7 @@ vector<Location> AStar::GetPath(Location startLocation, Location destinationLoca
             BuildPath(shortestPath, currentNode, startLocation);
         }
         //If not, we explore the neighbor nodes
-        //TODO: EXPLORATION OF NEIGHBOR NODES
+        //EXPLORATION OF NEIGHBOR NODES
         for (int x = -1; x <= 1; x++) 
         {
             for (int y = -1; y <= 1; y++)

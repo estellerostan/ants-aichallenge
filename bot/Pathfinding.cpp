@@ -64,27 +64,27 @@ std::vector<Location> Pathfinding::GetPath(Location startLocation, Location dest
                     return a.second < b.second;
                 }
             );
-            bool neighborAdded = false;
+            bool bneighborAdded = false;
             for (auto next : neighbors) {
-                if (neighborAdded == true)
+                if (bneighborAdded == true)
                 {
                     reached.push_back(next.first);
                     continue;
                 }
                 _state.bug << "Current Location: " << current.row << "," << current.col << "Neighbor: " << next.first.row << "," << next.first.col << std::endl;
-                bool isInReached = false;
+                bool bisInReached = false;
                 
                 for (Location reachedLoc : reached)
                 {
                     if (next.first == reachedLoc)
                     {
-                        isInReached = true;
+                        bisInReached = true;
                     }
                 }           
-                if(isInReached == false)
+                if(bisInReached == false)
                 {
                     current = next.first;
-                    neighborAdded = true;
+                    bneighborAdded = true;
                 }
 
         }
