@@ -121,14 +121,19 @@
   <ItemGroup>
     <ClCompile Include="AStar.cpp" />
     <ClCompile Include="AStarV2.cpp" />
+    <ClCompile Include="Behavior.cpp" />
+    <ClCompile Include="BehaviorTree.cpp" />
     <ClCompile Include="Bot.cc" />
     <ClCompile Include="MyBot.cc" />
     <ClCompile Include="Pathfinding.cpp" />
     <ClCompile Include="State.cc" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="ActionStatus.h" />
     <ClInclude Include="AStar.h" />
     <ClInclude Include="AStarV2.h" />
+    <ClInclude Include="Behavior.h" />
+    <ClInclude Include="BehaviorTree.h" />
     <ClInclude Include="Bot.h" />
     <ClInclude Include="Bug.h" />
     <ClInclude Include="Location.h" />
