@@ -119,20 +119,14 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="AStar.cpp" />
-    <ClCompile Include="AStarV2.cpp" />
     <ClCompile Include="Bot.cc" />
     <ClCompile Include="MyBot.cc" />
-    <ClCompile Include="Pathfinding.cpp" />
     <ClCompile Include="State.cc" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="AStar.h" />
-    <ClInclude Include="AStarV2.h" />
     <ClInclude Include="Bot.h" />
     <ClInclude Include="Bug.h" />
     <ClInclude Include="Location.h" />
-    <ClInclude Include="Pathfinding.h" />
     <ClInclude Include="Square.h" />
     <ClInclude Include="State.h" />
     <ClInclude Include="Timer.h" />

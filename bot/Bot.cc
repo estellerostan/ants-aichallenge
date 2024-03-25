@@ -1,7 +1,4 @@
 #include "Bot.h"
-#include "AStar.h"
-#include "AStarV2.h"
-#include "Pathfinding.h"
 using namespace std;
 
 //constructor
@@ -40,29 +37,6 @@ void Bot::makeMoves()
 	// explore unseen areas
 	exploreMap();
 	unblockHills();
-
-	//TEST AStar
-	/*AStar aStar = AStar(state);
-	aStar.SetGrid();
-	auto res = aStar.GetPath(Location(0, 7), Location(10, 10));
-	state.bug << "astar:" << res.size() << endl;
-	for (auto re : res)
-	{
-		state.bug << "astar:" << re << endl;
-	}*/
-	//END TEST AStar
-	
-	//TEST AStarV2
-	//AStarV2 aStar = AStarV2(state);
-	//auto res = aStar.GetPath(Location(0, 7), Location(10, 10));
-	//state.bug << "astar:" << res.size() << endl;
-	//END TEST AStarV2
-
-	//TEST Pathfinding
-	Pathfinding aStar = Pathfinding(state);
-	auto res = aStar.GetPath(Location(0, 7), Location(10, 10));
-	state.bug << "astar:" << res.size() << endl;
-	//END TEST Pathfinding
 
 	state.bug << "time taken: " << state.timer.getTime() << "ms" << endl << endl;
 }
