@@ -52,7 +52,7 @@ void State::makeMove(const Location &loc, int direction)
 };
 
 //returns the euclidean distance between two locations with the edges wrapped
-double State::distance(const Location &loc1, const Location &loc2)
+double State::EuclideanDistance(const Location &loc1, const Location &loc2) const
 {
     int d1 = abs(loc1.row-loc2.row),
         d2 = abs(loc1.col-loc2.col),
@@ -60,6 +60,15 @@ double State::distance(const Location &loc1, const Location &loc2)
         dc = min(d2, cols-d2);
     return sqrt(dr*dr + dc*dc);
 };
+
+//returns the Manhattan distance between two locations with the edges wrapped
+float State::ManhattanDistance(Location current, Location destination) const {
+    const int dx = abs(current.row - destination.row),
+        dy = abs(current.col - destination.col),
+        dr = min(dx, rows - dx),
+        dc = min(dy, cols - dy);
+    return static_cast<float>(dr + dc);
+}
 
 //returns the new location from moving in a given direction with the edges wrapped
 Location State::getLocation(const Location &loc, int direction)
@@ -156,7 +165,7 @@ void State::updateVisionInformation()
             {
                 nLoc = getLocation(cLoc, d);
 
-                if(!visited[nLoc.row][nLoc.col] && distance(sLoc, nLoc) <= viewradius)
+                if(!visited[nLoc.row][nLoc.col] && EuclideanDistance(sLoc, nLoc) <= viewradius)
                 {
                     grid[nLoc.row][nLoc.col].isVisible = true;
                     locQueue.push(nLoc);

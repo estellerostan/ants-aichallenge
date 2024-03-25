@@ -60,7 +60,8 @@ public:
 
     void makeMove(const Location &loc, int direction);
 
-    double distance(const Location &loc1, const Location &loc2);
+    double EuclideanDistance(const Location &loc1, const Location &loc2) const;
+    float ManhattanDistance(Location current, Location destination) const;
     Location getLocation(const Location &startLoc, int direction);
     std::vector<int> getDirections(Location l1, Location l2);
     bool isUnoccupied(const Location &loc) const;

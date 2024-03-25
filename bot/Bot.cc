@@ -1,4 +1,5 @@
 #include "Bot.h"
+#include "AStar.h"
 using namespace std;
 
 //constructor
@@ -37,6 +38,23 @@ void Bot::makeMoves()
 	// explore unseen areas
 	exploreMap();
 	unblockHills();
+
+	// TODO: Remove this test.
+	const Location start{ 0, 28 }, goal{ 45, 28 };
+	std::map<Location, Location> cameFrom;
+	std::map<Location, double> costSoFar;
+	const auto aStar = AStar(&state);
+
+	aStar.Search(start, goal, cameFrom, costSoFar);
+	const std::vector<Location> res = aStar.ReconstructPath(start, goal, cameFrom);
+	state.bug << "AStar: " << res.size() << endl;
+	if (!res.empty()) {
+		state.bug << "next move: " << res.front() << endl; // Only if goal =/= start and goal not water.
+	}
+	for (auto from : res)
+	{
+		state.bug << from << endl;
+	}
 
 	state.bug << "time taken: " << state.timer.getTime() << "ms" << endl << endl;
 }
@@ -86,7 +104,7 @@ void Bot::gatherFood()
 	{
 		for (Location antLoc : state.myAnts)
 		{
-			auto dist = state.distance(antLoc, foodLoc);
+			auto dist = state.EuclideanDistance(antLoc, foodLoc);
 
 			antDist.emplace_back(dist, antLoc, foodLoc);
 		}
@@ -137,11 +155,14 @@ void Bot::exploreMap()
 			std::vector<std::tuple<int, Location>> unseenDist;
 			for (Location unseenLoc : unseenTiles)
 			{
-				auto dist = state.distance(antLoc, unseenLoc);
+				auto dist = state.EuclideanDistance(antLoc, unseenLoc);
 				unseenDist.emplace_back(dist, unseenLoc);
 				// avoid timeout, even if the search is not complete
 				// better than being removed from the game
-				if (state.timeRemaining() < 200) break;
+				if (state.timeRemaining() < 200) {
+					state.bug << "explore " << endl;
+					break;
+				}
 			}
 			std::sort(unseenDist.begin(), unseenDist.end());
 			for (auto res : unseenDist)
@@ -172,7 +193,7 @@ void Bot::attackHills()
 		{
 			const bool hasMove = containsValue(orders, antLoc);
 			if (!hasMove) {
-				auto dist = state.distance(antLoc, hillLoc);
+				auto dist = state.EuclideanDistance(antLoc, hillLoc);
 				antDistToHill.emplace_back(dist, antLoc, hillLoc);
 			}
 		}
