@@ -38,7 +38,7 @@ std::set<Location> AStar::Neighbors(Location loc, bool isStart) const
  * \param cameFrom Store the location of where we came for AStar::ReconstructPath
  * \param costSoFar
  */
-void AStar::Search(Location start, Location goal, std::map<Location, Location>& cameFrom, std::map<Location, double>& costSoFar) const
+void AStar::AStarSearch(Location start, Location goal, std::map<Location, Location>& cameFrom, std::map<Location, double>& costSoFar) const
 {
 	if (goal == start) {
 		_state->bug << "Destination already reached (goal equals start)" << std::endl;
@@ -57,7 +57,7 @@ void AStar::Search(Location start, Location goal, std::map<Location, Location>& 
 
 	while (!frontier.empty()) {
 		if (_state->timeRemaining() < 200) {
-			_state->bug << "A* timeout " << std::endl;
+			_state->bug << "A* timeout" << std::endl;
 			// Don't send bad results
 			cameFrom.clear();
 			costSoFar.clear();
@@ -133,4 +133,51 @@ std::vector<Location> AStar::ReconstructPath(Location start, Location goal, std:
 
 	std::reverse(path.begin(), path.end());
 	return path;
+}
+
+/**
+ * \brief Explore the map with early exit
+ * \param start Start location
+ * \param goal Goal location
+ * \return 
+ */
+std::map<Location, Location> AStar::BreadthFirstSearch(Location start, Location goal) const {
+	std::map<Location, Location> cameFrom;
+	if (goal == start) {
+		_state->bug << "Destination already reached (goal equals start)" << std::endl;
+		return cameFrom;
+	}
+	if (_state->grid[goal.row][goal.col].isWater) {
+		_state->bug << "Destination is not a valid target (water tile)" << std::endl;
+		return cameFrom;
+	}
+
+	std::queue<Location> frontier;
+	frontier.push(start);
+
+	cameFrom[start] = start;
+
+	while (!frontier.empty()) {
+		if (_state->timeRemaining() < 200) {
+			_state->bug << "BFS timeout" << std::endl;
+			// Don't send bad results
+			cameFrom.clear();
+			break;
+		}
+
+		Location current = frontier.front();
+		frontier.pop();
+
+		if (current == goal) {
+			break;
+		}
+
+		for (auto next : Neighbors(current, false)) {
+			if (cameFrom.find(next) == cameFrom.end()) {
+				frontier.push(next);
+				cameFrom[next] = current;
+			}
+		}
+	}
+	return cameFrom;
 }

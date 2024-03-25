@@ -34,8 +34,10 @@ class AStar
 public:
 	explicit AStar(State* state) : _state(state) {}
 
-	void Search(Location start, Location goal, std::map<Location, Location>& cameFrom, std::map<Location, double>& costSoFar) const;
+	void AStarSearch(Location start, Location goal, std::map<Location, Location>& cameFrom, std::map<Location, double>& costSoFar) const;
 
 	std::vector<Location> ReconstructPath(Location start, Location goal, std::map<Location, Location> cameFrom, bool withStart = false) const;
+
+	std::map<Location, Location> BreadthFirstSearch(Location start, Location goal) const;
 };
 

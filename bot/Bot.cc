@@ -40,12 +40,12 @@ void Bot::makeMoves()
 	unblockHills();
 
 	// TODO: Remove this test.
-	const Location start{ 0, 28 }, goal{ 45, 28 };
+	const Location start{ 0, 28 }, goal{ 27, 10 };
 	std::map<Location, Location> cameFrom;
 	std::map<Location, double> costSoFar;
 	const auto aStar = AStar(&state);
 
-	aStar.Search(start, goal, cameFrom, costSoFar);
+	aStar.AStarSearch(start, goal, cameFrom, costSoFar);
 	const std::vector<Location> res = aStar.ReconstructPath(start, goal, cameFrom);
 	state.bug << "AStar: " << res.size() << endl;
 	if (!res.empty()) {
@@ -56,6 +56,21 @@ void Bot::makeMoves()
 		state.bug << from << endl;
 	}
 
+	// TODO: Remove this test.
+	const Location startBFS{ 30, 19 }, goalBFS{ 31, 10 };
+	auto res2 = aStar.BreadthFirstSearch(startBFS, goalBFS);
+	state.bug << "BFS: " << res2.size() << endl;
+	std::vector<Location> foodLocs;
+	for (std::pair<Location, Location> from : res2)
+	{
+		if (state.grid[from.first.row][from.first.col].isFood)
+		{
+			foodLocs.push_back(from.first);
+			state.bug << from.first << endl;
+		}
+	}
+	state.bug << "food amount:" << foodLocs.size() << endl;
+	
 	state.bug << "time taken: " << state.timer.getTime() << "ms" << endl << endl;
 }
 
