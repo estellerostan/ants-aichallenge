@@ -73,13 +73,13 @@ void Bot::makeMoves()
 
 	// TODO: Remove this test.
 	const Location startBFS2{ 28, 17 }, goalBFS2{ 30, 17 };
-	const auto resBFS2 = aStar.BreadthFirstSearch(startBFS2, goalBFS2, true);
+	const auto resBFS2 = aStar.BreadthFirstSearch(startBFS2, goalBFS2, MYANT);
 	state.bug << "BFS2: " << resBFS2.size() << endl;
 	for (std::pair<Location, Location> from : resBFS2)
 	{
 		state.bug << "ant nearest to food " << from.first << endl;
 	}
-	
+
 	state.bug << "time taken: " << state.timer.getTime() << "ms" << endl << endl;
 }
 

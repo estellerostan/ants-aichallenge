@@ -296,8 +296,11 @@ istream& operator>>(istream &is, State &state)
                     state.grid[row][col].isMyAnt = true;
                     state.myAnts.emplace_back(row, col);
                 }
-                else
+                else 
+                {
+                    state.grid[row][col].isEnemyAnt = true;
                     state.enemyAnts.emplace_back(row, col);
+                }
             }
             else if(inputType == "d") //dead ant square
             {

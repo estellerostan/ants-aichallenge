@@ -8,13 +8,13 @@
 */
 struct Square
 {
-    bool isVisible, isWater, isHill, isFood, isMyAnt;
+    bool isVisible, isWater, isHill, isFood, isMyAnt, isEnemyAnt;
     int ant, hillPlayer;
     std::vector<int> deadAnts;
 
     Square()
     {
-        isVisible = isWater = isHill = isFood = isMyAnt = false;
+        isVisible = isWater = isHill = isFood = isMyAnt = isEnemyAnt = false;
         ant = hillPlayer = -1;
     };
 
@@ -28,6 +28,15 @@ struct Square
         ant = hillPlayer = -1;
         deadAnts.clear();
     };
+};
+
+enum SquareType
+{
+    UNKNOWN,
+    HILL,
+    FOOD,
+    MYANT,
+    ENEMYANT
 };
 
 #endif //SQUARE_H_

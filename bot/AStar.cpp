@@ -139,10 +139,10 @@ std::vector<Location> AStar::ReconstructPath(Location start, Location goal, std:
  * \brief Explore the map with early exit
  * \param start Start location
  * \param goal Goal location
- * \param stopAtFirstOwnAnt Allows to stop the search when an own ant that is close enough to the the start is found, even if the goal is not reached
- * \return Either all the visited locations or the ant location if stopAtFirstOwnAnt is true, if they exist, else an empty map
+ * \param searchForType Allows to stop the search when the condition to find a type is met, even if the goal is not reached
+ * \param count How many locations of a type should be found before stopping the search
  */
-std::map<Location, Location> AStar::BreadthFirstSearch(Location start, Location goal, bool stopAtFirstOwnAnt) const {
+std::map<Location, Location> AStar::BreadthFirstSearch(Location start, Location goal, SquareType searchForType) const {
 	std::map<Location, Location> cameFrom;
 	if (goal == start) {
 		_state->bug << "Destination already reached (goal equals start)" << std::endl;
@@ -175,12 +175,17 @@ std::map<Location, Location> AStar::BreadthFirstSearch(Location start, Location 
 
 		for (auto next : Neighbors(current, false)) {
 			if (cameFrom.find(next) == cameFrom.end()) {
-				// TODO: a cond for enemy ant or even a generic second cond...
-				if (stopAtFirstOwnAnt && _state->grid[next.row][next.col].isMyAnt)
-				{
-					cameFrom.clear();
-					cameFrom[next] = current;
-					return cameFrom;
+				// Ugly but working multiple conds, still not generic.
+				if (searchForType != UNKNOWN) {
+					if ((searchForType == MYANT && _state->grid[next.row][next.col].isMyAnt)
+						|| (searchForType == HILL && _state->grid[next.row][next.col].isHill)
+						|| (searchForType == FOOD && _state->grid[next.row][next.col].isFood)
+						|| (searchForType == ENEMYANT && _state->grid[next.row][next.col].isEnemyAnt))
+					{
+						cameFrom.clear();
+						cameFrom[next] = current;
+						return cameFrom;
+					}
 				}
 
 				frontier.push(next);
@@ -189,7 +194,7 @@ std::map<Location, Location> AStar::BreadthFirstSearch(Location start, Location 
 		}
 	}
 
-	if (stopAtFirstOwnAnt)
+	if (searchForType != UNKNOWN)
 	{
 		// No own ant was found so return an empty result.
 		cameFrom.clear();
