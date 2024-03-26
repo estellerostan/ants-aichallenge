@@ -72,8 +72,8 @@ void Bot::makeMoves()
 	state.bug << "food amount:" << foodLocs.size() << endl;
 
 	// TODO: Remove this test.
-	const Location startBFS2{ 28, 17 }, goalBFS2{ 30, 17 };
-	const auto resBFS2 = aStar.BreadthFirstSearch(startBFS2, goalBFS2, MYANT);
+	const Location startBFS2{ 9, 16 }, goalBFS2{ 15, 16 };
+	const auto resBFS2 = aStar.BreadthFirstSearch(startBFS2, goalBFS2, ENEMYANT, 5);
 	state.bug << "BFS2: " << resBFS2.size() << endl;
 	for (std::pair<Location, Location> from : resBFS2)
 	{

@@ -141,13 +141,17 @@ std::vector<Location> AStar::ReconstructPath(Location start, Location goal, std:
  * \param goal Goal location
  * \param searchForType Allows to stop the search when the condition to find a type is met, even if the goal is not reached
  * \param count How many locations of a type should be found before stopping the search
+ * \return Either all the visited locations or the locations matching the wanted type if searchForType is set, with maximum count locations.
+ *		   If no match was found, return an empty result.
  */
-std::map<Location, Location> AStar::BreadthFirstSearch(Location start, Location goal, SquareType searchForType) const {
+std::map<Location, Location> AStar::BreadthFirstSearch(Location start, Location goal, SquareType searchForType, int count) const {
 	std::map<Location, Location> cameFrom;
+	std::map<Location, Location> foundLocs;
 	if (goal == start) {
 		_state->bug << "Destination already reached (goal equals start)" << std::endl;
 		return cameFrom;
 	}
+	// TODO: Remove? what if we choose a random goal just to have a radius and we step on a water tile by accident?
 	if (_state->grid[goal.row][goal.col].isWater) {
 		_state->bug << "Destination is not a valid target (water tile)" << std::endl;
 		return cameFrom;
@@ -158,6 +162,7 @@ std::map<Location, Location> AStar::BreadthFirstSearch(Location start, Location 
 
 	cameFrom[start] = start;
 
+	int found = 0;
 	while (!frontier.empty()) {
 		if (_state->timeRemaining() < 200) {
 			_state->bug << "BFS timeout" << std::endl;
@@ -182,12 +187,18 @@ std::map<Location, Location> AStar::BreadthFirstSearch(Location start, Location 
 						|| (searchForType == FOOD && _state->grid[next.row][next.col].isFood)
 						|| (searchForType == ENEMYANT && _state->grid[next.row][next.col].isEnemyAnt))
 					{
-						cameFrom.clear();
-						cameFrom[next] = current;
-						return cameFrom;
+						// Keep track of found locations in a dedicated array.
+						found++;
+						foundLocs[next] = current;
+
+						// Stop BFS when needed.
+						if (found == count) {
+							return foundLocs;
+						}
 					}
 				}
 
+				// BFS as usual.
 				frontier.push(next);
 				cameFrom[next] = current;
 			}
@@ -196,9 +207,7 @@ std::map<Location, Location> AStar::BreadthFirstSearch(Location start, Location 
 
 	if (searchForType != UNKNOWN)
 	{
-		// No own ant was found so return an empty result.
-		cameFrom.clear();
-		return cameFrom;
+		return foundLocs;
 	}
 
 	return cameFrom;

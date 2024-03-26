@@ -38,6 +38,6 @@ public:
 
 	std::vector<Location> ReconstructPath(Location start, Location goal, std::map<Location, Location> cameFrom, bool withStart = false) const;
 
-	std::map<Location, Location> BreadthFirstSearch(Location start, Location goal, SquareType searchForType = UNKNOWN) const;
+	std::map<Location, Location> BreadthFirstSearch(Location start, Location goal, SquareType searchForType = UNKNOWN, int count = 1) const;
 };
 
