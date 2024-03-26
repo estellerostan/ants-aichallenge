@@ -58,10 +58,10 @@ void Bot::makeMoves()
 
 	// TODO: Remove this test.
 	const Location startBFS{ 30, 19 }, goalBFS{ 31, 10 };
-	auto res2 = aStar.BreadthFirstSearch(startBFS, goalBFS);
-	state.bug << "BFS: " << res2.size() << endl;
+	const auto resBFS = aStar.BreadthFirstSearch(startBFS, goalBFS);
+	state.bug << "BFS: " << resBFS.size() << endl;
 	std::vector<Location> foodLocs;
-	for (std::pair<Location, Location> from : res2)
+	for (std::pair<Location, Location> from : resBFS)
 	{
 		if (state.grid[from.first.row][from.first.col].isFood)
 		{
@@ -70,6 +70,15 @@ void Bot::makeMoves()
 		}
 	}
 	state.bug << "food amount:" << foodLocs.size() << endl;
+
+	// TODO: Remove this test.
+	const Location startBFS2{ 28, 17 }, goalBFS2{ 30, 17 };
+	const auto resBFS2 = aStar.BreadthFirstSearch(startBFS2, goalBFS2, true);
+	state.bug << "BFS2: " << resBFS2.size() << endl;
+	for (std::pair<Location, Location> from : resBFS2)
+	{
+		state.bug << "ant nearest to food " << from.first << endl;
+	}
 	
 	state.bug << "time taken: " << state.timer.getTime() << "ms" << endl << endl;
 }

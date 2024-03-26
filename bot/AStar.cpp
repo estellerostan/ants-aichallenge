@@ -139,9 +139,10 @@ std::vector<Location> AStar::ReconstructPath(Location start, Location goal, std:
  * \brief Explore the map with early exit
  * \param start Start location
  * \param goal Goal location
- * \return 
+ * \param stopAtFirstOwnAnt Allows to stop the search when an own ant that is close enough to the the start is found, even if the goal is not reached
+ * \return Either all the visited locations or the ant location if stopAtFirstOwnAnt is true, if they exist, else an empty map
  */
-std::map<Location, Location> AStar::BreadthFirstSearch(Location start, Location goal) const {
+std::map<Location, Location> AStar::BreadthFirstSearch(Location start, Location goal, bool stopAtFirstOwnAnt) const {
 	std::map<Location, Location> cameFrom;
 	if (goal == start) {
 		_state->bug << "Destination already reached (goal equals start)" << std::endl;
@@ -174,10 +175,26 @@ std::map<Location, Location> AStar::BreadthFirstSearch(Location start, Location 
 
 		for (auto next : Neighbors(current, false)) {
 			if (cameFrom.find(next) == cameFrom.end()) {
+				// TODO: a cond for enemy ant or even a generic second cond...
+				if (stopAtFirstOwnAnt && _state->grid[next.row][next.col].isMyAnt)
+				{
+					cameFrom.clear();
+					cameFrom[next] = current;
+					return cameFrom;
+				}
+
 				frontier.push(next);
 				cameFrom[next] = current;
 			}
 		}
 	}
+
+	if (stopAtFirstOwnAnt)
+	{
+		// No own ant was found so return an empty result.
+		cameFrom.clear();
+		return cameFrom;
+	}
+
 	return cameFrom;
 }
