@@ -25,6 +25,7 @@ struct Square
         isHill = false;
         isFood = false;
         isMyAnt = false;
+        isEnemyAnt = false;
         ant = hillPlayer = -1;
         deadAnts.clear();
     };
