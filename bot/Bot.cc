@@ -1,7 +1,5 @@
 #include "Bot.h"
 #include "AStar.h"
-#include "AStarV2.h"
-#include "Pathfinding.h"
 using namespace std;
 
 //constructor
@@ -41,28 +39,46 @@ void Bot::makeMoves()
 	exploreMap();
 	unblockHills();
 
-	//TEST AStar
-	/*AStar aStar = AStar(state);
-	aStar.SetGrid();
-	auto res = aStar.GetPath(Location(0, 7), Location(10, 10));
-	state.bug << "astar:" << res.size() << endl;
-	for (auto re : res)
-	{
-		state.bug << "astar:" << re << endl;
-	}*/
-	//END TEST AStar
-	
-	//TEST AStarV2
-	//AStarV2 aStar = AStarV2(state);
-	//auto res = aStar.GetPath(Location(0, 7), Location(10, 10));
-	//state.bug << "astar:" << res.size() << endl;
-	//END TEST AStarV2
+	// TODO: Remove this test.
+	const Location start{ 0, 28 }, goal{ 27, 10 };
+	std::map<Location, Location> cameFrom;
+	std::map<Location, double> costSoFar;
+	const auto aStar = AStar(&state);
 
-	//TEST Pathfinding
-	Pathfinding aStar = Pathfinding(state);
-	auto res = aStar.GetPath(Location(0, 7), Location(10, 10));
-	state.bug << "astar:" << res.size() << endl;
-	//END TEST Pathfinding
+	aStar.AStarSearch(start, goal, cameFrom, costSoFar);
+	const std::vector<Location> res = aStar.ReconstructPath(start, goal, cameFrom);
+	state.bug << "AStar: " << res.size() << endl;
+	if (!res.empty()) {
+		state.bug << "next move: " << res.front() << endl; // Only if goal =/= start and goal not water.
+	}
+	for (auto from : res)
+	{
+		state.bug << from << endl;
+	}
+
+	// TODO: Remove this test.
+	const Location startBFS{ 30, 19 }, goalBFS{ 31, 10 };
+	const auto resBFS = aStar.BreadthFirstSearch(startBFS, goalBFS);
+	state.bug << "BFS: " << resBFS.size() << endl;
+	std::vector<Location> foodLocs;
+	for (std::pair<Location, Location> from : resBFS)
+	{
+		if (state.grid[from.first.row][from.first.col].isFood)
+		{
+			foodLocs.push_back(from.first);
+			state.bug << from.first << endl;
+		}
+	}
+	state.bug << "food amount:" << foodLocs.size() << endl;
+
+	// TODO: Remove this test.
+	const Location startBFS2{ 9, 16 }, goalBFS2{ 15, 16 };
+	const auto resBFS2 = aStar.BreadthFirstSearch(startBFS2, goalBFS2, ENEMYANT, 5);
+	state.bug << "BFS2: " << resBFS2.size() << endl;
+	for (std::pair<Location, Location> from : resBFS2)
+	{
+		state.bug << "ant nearest to food " << from.first << endl;
+	}
 
 	state.bug << "time taken: " << state.timer.getTime() << "ms" << endl << endl;
 }
@@ -112,7 +128,7 @@ void Bot::gatherFood()
 	{
 		for (Location antLoc : state.myAnts)
 		{
-			auto dist = state.distance(antLoc, foodLoc);
+			auto dist = state.EuclideanDistance(antLoc, foodLoc);
 
 			antDist.emplace_back(dist, antLoc, foodLoc);
 		}
@@ -163,11 +179,14 @@ void Bot::exploreMap()
 			std::vector<std::tuple<int, Location>> unseenDist;
 			for (Location unseenLoc : unseenTiles)
 			{
-				auto dist = state.distance(antLoc, unseenLoc);
+				auto dist = state.EuclideanDistance(antLoc, unseenLoc);
 				unseenDist.emplace_back(dist, unseenLoc);
 				// avoid timeout, even if the search is not complete
 				// better than being removed from the game
-				if (state.timeRemaining() < 200) break;
+				if (state.timeRemaining() < 200) {
+					state.bug << "explore " << endl;
+					break;
+				}
 			}
 			std::sort(unseenDist.begin(), unseenDist.end());
 			for (auto res : unseenDist)
@@ -198,7 +217,7 @@ void Bot::attackHills()
 		{
 			const bool hasMove = containsValue(orders, antLoc);
 			if (!hasMove) {
-				auto dist = state.distance(antLoc, hillLoc);
+				auto dist = state.EuclideanDistance(antLoc, hillLoc);
 				antDistToHill.emplace_back(dist, antLoc, hillLoc);
 			}
 		}

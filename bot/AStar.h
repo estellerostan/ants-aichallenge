@@ -1,86 +1,75 @@
+/*
+ Adapted from:
+	 Sample code from https://www.redblobgames.com/pathfinding/a-star/
+	 Copyright 2014 Red Blob Games <redblobgames@gmail.com>
+
+	 License: Apache v2.0 <http://www.apache.org/licenses/LICENSE-2.0.html>
+*/
+
 #pragma once
+#include <map>
+#include <set>
+
 #include "State.h"
 
-/**
-* \brief Class AStar: contains a version (V1) of an A* algorithm and its associated function that computes paths between two locations.
-*
-*/
 class AStar
 {
+	State* _state;
+
+	template<typename T, typename PriorityT>
+	struct PriorityQueue {
+		typedef std::pair<PriorityT, T> PQElement;
+		std::priority_queue<PQElement, std::vector<PQElement>,
+			std::greater<>> elements;
+
+		bool empty() const {
+			return elements.empty();
+		}
+
+		void put(T item, PriorityT priority) {
+			elements.emplace(priority, item);
+		}
+
+		T get() {
+			T bestItem = elements.top().second;
+			elements.pop();
+			return bestItem;
+		}
+	};
+
+	std::set<Location> Neighbors(Location loc, bool isStart) const;
+
 public:
+	explicit AStar(State* state) : _state(state) {}
 
-    //Structure for a graph node used in A* algorithms.
-    struct Node {
-        Node* parentNode;
-        Location position;
+	/**
+	 * \brief Find the shortest path from source to goal.
+	 * \param start Start location
+	 * \param goal Goal location
+	 * \param cameFrom Store the location of where we came for AStar::ReconstructPath
+	 * \param costSoFar
+	 */
+	void AStarSearch(Location start, Location goal, std::map<Location, Location>& cameFrom, std::map<Location, double>& costSoFar) const;
 
-        float gCost;
-        float hCost;
-        float fCost;
+	/**
+	 * \brief Returns the path to go from start to goal
+	 * \param start Start location
+	 * \param goal Goal location
+	 * \param cameFrom The location of where we came stored in AStar::Search
+	 * \param withStart Optional: here we directly want the next move to use it in makeMove.
+	 * \return
+	 */
+	std::vector<Location> ReconstructPath(Location start, Location goal, std::map<Location, Location> cameFrom, bool withStart = false) const;
 
-        //For file debug log.
-        friend std::ostream& operator <<(std::ostream& os, Node const& a)
-        {
-            return os << "Node: " << a.position << std::endl
-                << "Cost (g,h,f): " << a.gCost << ", " << a.hCost << ", " << a.fCost << std::endl << std::endl;
-        }
-    };
-
-    /**
-     * \brief Constructor for the AStar class.
-     * \param State& state reference to the current state of the game.
-     */
-    explicit AStar(State& state) : _state(state) {}
-
-    /**
-     * \brief Initialize a node grid that represents the map.
-     */
-    void SetGrid();
-
-    /**
-     * \brief Computes a path between two locations.
-     * \param Location startLocation the starting point of the path.
-     * \param Location destinationLocation the destination point of the path.
-     * \return vector<Location>, containing the location points forming a path between startLocation and destinationLocation.
-     */
-    std::vector<Location> GetPath(Location startLocation, Location destinationLocation);
-
-private:
-
-    /**
-     * \brief Computes the Manhattan distance between two locations.
-     * \param Location a first location.
-     * \param Location b second location.
-     * \return Float, the Manhattan distance value between a and b.
-     */
-    float ManhattanDistance(Location currentLocation, Location destinationLocation);
-
-    /**
-     * \brief Computes the A* heuristic using the Manhattan distance between the location of two nodes on the grid, updates the neighbor node costs.  Takes into consideration the wrapped aspect of the map
-     * \param Node* currentNode pointer towards the currently analyzed node.
-     * \param Node* neighborNode pointer towards a neighbor node of the current node.
-     */
-    void ComputeHeuristicCost(Node* currentNode, Node* neighborNode);
-
-    /**
-     * \brief Checks if the Location given in parameter is a valid location (not a water tile).
-     * \param Location targetLocation location to check.
-     * \return Bool true if the location is valid, false otherwise.
-     */
-    bool IsLocationValid(Location targetLocation) const;
-
-    /**
-     * \brief Builds a path between two nodes.
-     * \param vector<Location>& path vector that will contain the path to build.
-     * \param Node* currentNode a node.
-     * \param Location startLocation the starting point of the path.
-     */
-    void BuildPath(std::vector<Location>& path, Node* currentNode, Location startLocation) const;
-
-    //Grid of nodes that represents the map.
-    std::vector<std::vector<Node>> _nodeGrid;
-
-    //Reference & to the current state of the game.
-    State& _state;
-    
+	/**
+	 * \brief Explore the map with early exit
+	 * \param start Start location
+	 * \param goal Goal location
+	 * \param searchForType Allows to stop the search when the condition to find a type is met, even if the goal is not reached
+	 * \param count How many locations of a type should be found before stopping the search
+	 * \return Either all the visited locations or the locations matching the wanted type if searchForType is set, with maximum count locations.
+	 *		   If no match was found, return an empty result.
+	 */
+	std::map<Location, Location> BreadthFirstSearch(Location start, Location goal, SquareType searchForType = UNKNOWN, int count = 1) const;
 };
+
