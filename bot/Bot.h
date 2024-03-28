@@ -33,7 +33,6 @@ struct Bot
 	void unblockHills();
 	void exploreMap();
 	void attackHills();
-	// TODO: move functions in their own class
 	void attackAnts();
 	bool makeMove(const Location& loc, const Location& dest, const std::string& from = {}); // makes a move following a destination for a single ant
 	bool makeMove(const Location& loc, int direction, const std::string& from = {}); // makes a move to a direction for a single ant

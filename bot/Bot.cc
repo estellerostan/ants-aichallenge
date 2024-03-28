@@ -78,7 +78,7 @@ void Bot::makeMoves()
 	state.bug << "BFS2: " << resBFS2.size() << endl;
 	for (std::pair<Location, Location> from : resBFS2)
 	{
-		state.bug << "ant nearest to food " << from.first << endl;
+		state.bug << "enemies near " << from.first << endl;
 	}
 
 	state.bug << "time taken: " << state.timer.getTime() << "ms" << endl << endl;
