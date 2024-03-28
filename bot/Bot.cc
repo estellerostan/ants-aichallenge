@@ -278,9 +278,6 @@ void Bot::attackAnts()
         //state.bug << antLoc << " vs " << enemyLoc << endl;
     }
 
-    // minimax algorithm adapted from http://www.xathis.com//posts/ai-challenge-2011-ants.html
-    miniMax.bestValue = -miniMax.range;
-    // TODO: optimize minimax for large groups of ants and lots of attacks at once.
     miniMax.Max(0);
     for (const Ant* myAnt : miniMax.myAnts) {
         if (myAnt->bestDest != Location(-1, -1)) makeMove(myAnt->loc, myAnt->bestDest, "attack ants"); // else?
