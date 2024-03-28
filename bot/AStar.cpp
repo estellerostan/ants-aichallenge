@@ -65,7 +65,7 @@ void AStar::AStarSearch(Location start, Location goal, std::map<Location, Locati
 			neighbors = Neighbors(current, false);
 		}
 
-		for (Location next : neighbors) { // TODO: isStart
+		for (Location next : neighbors) {
 			// Here are our gcosts.
 			const double newCost = costSoFar[current] + _state->ManhattanDistance(current, next);
 
@@ -95,7 +95,7 @@ std::vector<Location> AStar::ReconstructPath(Location start, Location goal, std:
 		return path; // No path can be found.
 	}
 
-	while (!(current == start)) { // TODO: !=
+	while (current != start) {
 		if (_state->timeRemaining() < 200) {
 			_state->bug << "A* reconstruct timeout " << std::endl;
 			break;
