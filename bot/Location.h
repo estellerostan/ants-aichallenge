@@ -38,7 +38,9 @@ inline bool operator==(Location const& left, Location const& right)
 
 inline bool operator!=(Location const& left, Location const& right)
 {
-	return left.row != right.row && left.col != right.col;
+	// the inequality operator is typically implemented in terms of operator==
+	// Source: https://en.cppreference.com/w/cpp/language/operators#Comparison_operators
+	return !(left.row == right.row && left.col == right.col);
 }
 
 #endif //LOCATION_H_
