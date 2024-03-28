@@ -40,6 +40,7 @@ class AStar
 	std::set<Location> Neighbors(Location loc, bool isStart) const;
 
 public:
+	AStar();
 	explicit AStar(State* state) : _state(state) {}
 
 	/**

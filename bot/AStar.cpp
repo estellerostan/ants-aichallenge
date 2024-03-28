@@ -3,6 +3,8 @@
 #include <map>
 #include <set>
 
+AStar::AStar() = default;
+
 std::set<Location> AStar::Neighbors(Location loc, bool isStart) const
 {
 	std::set<Location> results;
@@ -26,11 +28,11 @@ std::set<Location> AStar::Neighbors(Location loc, bool isStart) const
 void AStar::AStarSearch(Location start, Location goal, std::map<Location, Location>& cameFrom, std::map<Location, double>& costSoFar) const
 {
 	if (goal == start) {
-		_state->bug << "Destination already reached (goal equals start)" << std::endl;
+		_state->bug << "Destination already reached (goal equals start)" << start << std::endl;
 		return;
 	}
 	if (_state->grid[goal.row][goal.col].isWater) {
-		_state->bug << "Destination is not a valid target (water tile)" << std::endl;
+		_state->bug << "Destination is not a valid target (water tile) " << goal << std::endl;
 		return;
 	}
 
@@ -92,12 +94,13 @@ std::vector<Location> AStar::ReconstructPath(Location start, Location goal, std:
 	Location current = goal;
 
 	if (cameFrom.find(goal) == cameFrom.end()) {
-		return path; // No path can be found.
+		_state->bug << " No path can be found" << std::endl;
+		return path;
 	}
 
 	while (current != start) {
 		if (_state->timeRemaining() < 200) {
-			_state->bug << "A* reconstruct timeout " << std::endl;
+			_state->bug << "A* reconstruct timeout" << std::endl;
 			break;
 		}
 		path.push_back(current);
@@ -116,14 +119,16 @@ std::map<Location, Location> AStar::BreadthFirstSearch(Location start, Location 
 	std::map<Location, Location> cameFrom;
 	std::map<Location, Location> foundLocs;
 	if (goal == start) {
-		_state->bug << "Destination already reached (goal equals start)" << std::endl;
+		_state->bug << "Destination already reached (goal equals start)" << start << std::endl;
 		return cameFrom;
 	}
-	// TODO: Remove? what if we choose a random goal just to have a radius and we step on a water tile by accident?
-	if (_state->grid[goal.row][goal.col].isWater) {
-		_state->bug << "Destination is not a valid target (water tile)" << std::endl;
-		return cameFrom;
-	}
+
+	// Allows to search within a radius without minding water.
+	// TODO: Put back? what if we choose a goal and we step on a water tile by accident?
+	//if (_state->grid[goal.row][goal.col].isWater) {
+	//	_state->bug << "Destination is not a valid target (water tile) " << goal << std::endl;
+	//	return cameFrom;
+	//}
 
 	std::queue<Location> frontier;
 	frontier.push(start);

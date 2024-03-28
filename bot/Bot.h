@@ -2,6 +2,8 @@
 #define BOT_H_
 
 #include "State.h"
+#include "AStar.h"
+
 #include <map>
 #include <set>
 
@@ -21,6 +23,7 @@ struct Bot
 
 	State state;
 	MiniMax miniMax;
+	AStar aStar;
 
 	Bot();
 
