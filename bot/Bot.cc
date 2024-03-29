@@ -129,18 +129,25 @@ void Bot::gatherFood()
 		// TODO: Make BFS radius smaller to reduce time taken?
 		const Location start = foodLoc, goal{ foodLoc.row + 5, foodLoc.col };
 		const auto antLoc = aStar.BreadthFirstSearch(start, goal, MYANT);
+
 		for (std::pair<Location, Location> from : antLoc)
 		{
+			// Don't prioritize if enemies nearby
+			const Location myAnt = from.first, enemyRadius{ myAnt.row + 5, myAnt.col };
+			const auto enemiesCount = aStar.BreadthFirstSearch(myAnt, enemyRadius, ENEMYANT, 2).size();
+
+			if (enemiesCount == 2) continue;
+
 			// if ant has no task
-			const bool isAntBusyWithFood = containsValue(targets, from.first);
+			const bool isAntBusyWithFood = containsValue(targets, myAnt);
 			if (!isAntBusyWithFood)
 			{
 				std::map<Location, Location> cameFrom;
 				std::map<Location, double> costSoFar;
-				aStar.AStarSearch(from.first, foodLoc, cameFrom, costSoFar);
-				const std::vector<Location> res = aStar.ReconstructPath(from.first, foodLoc, cameFrom);
+				aStar.AStarSearch(myAnt, foodLoc, cameFrom, costSoFar);
+				const std::vector<Location> res = aStar.ReconstructPath(myAnt, foodLoc, cameFrom);
 				if (!res.empty()) {
-					makeMove(from.first, res.front(), "gather food");
+					makeMove(myAnt, res.front(), "gather food");
 
 				}
 			}
@@ -214,6 +221,12 @@ void Bot::attackHills()
     {
         for (Location antLoc : state.myAnts)
         {
+			// Don't prioritize if enemies nearby
+			const Location enemyRadius{ antLoc.row + 5, antLoc.col };
+			const auto enemiesCount = aStar.BreadthFirstSearch(antLoc, enemyRadius, ENEMYANT, 2).size();
+
+			if (enemiesCount == 2) continue;
+
             const bool hasMove = containsValue(orders, antLoc);
             if (!hasMove) {
                 auto dist = state.EuclideanDistance(antLoc, hillLoc);
