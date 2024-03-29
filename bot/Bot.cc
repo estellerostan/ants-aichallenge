@@ -141,7 +141,7 @@ void Bot::gatherFood()
 			string info = "gather food";
 
 			// Enemy near food AND close enough to food.
-			const auto dist = state.EuclideanDistance(myAnt, foodLoc);
+			const auto dist = state.ManhattanDistance(myAnt, foodLoc);
 			const bool acceptTrade = (isEnemyNearFood && dist < 3);
 			if (acceptTrade) info += " (trade ant to not loose food)";
 
