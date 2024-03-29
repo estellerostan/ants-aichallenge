@@ -145,7 +145,9 @@ void Bot::gatherFood()
 			const bool acceptTrade = (isEnemyNearFood && dist < 3);
 			if (acceptTrade) info += " (trade ant to not loose food)";
 
-			if (!acceptTrade || enemiesCount > 1) continue;
+			if (!(acceptTrade || enemiesCount < 2)) {
+				continue;
+			}
 
 			// If ant has no task.
 			const bool isAntBusyWithFood = containsValue(targets, myAnt);
@@ -157,7 +159,6 @@ void Bot::gatherFood()
 				const std::vector<Location> res = aStar.ReconstructPath(myAnt, foodLoc, cameFrom);
 				if (!res.empty()) {
 					makeMove(myAnt, res.front(), info);
-
 				}
 			}
 		}
@@ -199,7 +200,7 @@ void Bot::exploreMap()
                 // avoid timeout, even if the search is not complete
                 // better than being removed from the game
 				if (state.timeRemaining() < 200) {
-					state.bug << "explore " << endl;
+					state.bug << "explore timeout" << endl;
 					break;
 				}
             }
@@ -235,7 +236,9 @@ void Bot::attackHills()
 			const Location enemyRadius{ state.getLocation(antLoc, 2, 3) };
 			const auto enemiesCount = aStar.BreadthFirstSearch(antLoc, enemyRadius, ENEMYANT, 2).size();
 
-			if (enemiesCount == 2) continue;
+			if (enemiesCount > 1) {
+				continue;
+			}
 
             const bool hasMove = containsValue(orders, antLoc);
             if (!hasMove) {
