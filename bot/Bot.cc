@@ -127,12 +127,12 @@ void Bot::gatherFood()
 	for (const Location foodLoc : state.food)
 	{
 		// TODO: Make BFS radius smaller to reduce time taken?
-		const Location start = foodLoc, goal{ foodLoc.row + 5, foodLoc.col };
+		const Location start = foodLoc, goal{ state.getLocation(foodLoc, 2, 5) };
 		const auto antLoc = aStar.BreadthFirstSearch(start, goal, MYANT);
 
 		for (std::pair<Location, Location> from : antLoc)
 		{
-			const Location myAnt = from.first, enemiesRadius{ myAnt.row + 3, myAnt.col }, enemyRadius{ foodLoc.row + 2, foodLoc.col };
+			const Location myAnt = from.first, enemiesRadius{ state.getLocation(myAnt, 2, 3) }, enemyRadius{ state.getLocation(foodLoc, 2, 2) };
 			// Prioritize own food over enemy food.
 			const auto isEnemyNearFood = aStar.BreadthFirstSearch(foodLoc, enemyRadius, ENEMYANT, 5).size() == 1;
 			// Don't prioritize if enemies nearby.
@@ -230,8 +230,9 @@ void Bot::attackHills()
     {
         for (Location antLoc : state.myAnts)
         {
-			// Don't prioritize if enemies nearby
-			const Location enemyRadius{ antLoc.row + 5, antLoc.col };
+			// Don't prioritize if enemies nearby (3 for now)
+			// TODO: This may need to be removed when changing strategy.
+			const Location enemyRadius{ state.getLocation(antLoc, 2, 3) };
 			const auto enemiesCount = aStar.BreadthFirstSearch(antLoc, enemyRadius, ENEMYANT, 2).size();
 
 			if (enemiesCount == 2) continue;
