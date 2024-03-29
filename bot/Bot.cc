@@ -132,13 +132,22 @@ void Bot::gatherFood()
 
 		for (std::pair<Location, Location> from : antLoc)
 		{
-			// Don't prioritize if enemies nearby
-			const Location myAnt = from.first, enemyRadius{ myAnt.row + 5, myAnt.col };
-			const auto enemiesCount = aStar.BreadthFirstSearch(myAnt, enemyRadius, ENEMYANT, 2).size();
+			const Location myAnt = from.first, enemiesRadius{ myAnt.row + 3, myAnt.col }, enemyRadius{ foodLoc.row + 2, foodLoc.col };
+			// Prioritize own food over enemy food.
+			const auto isEnemyNearFood = aStar.BreadthFirstSearch(foodLoc, enemyRadius, ENEMYANT, 5).size() == 1;
+			// Don't prioritize if enemies nearby.
+			const auto enemiesCount = aStar.BreadthFirstSearch(myAnt, enemiesRadius, ENEMYANT, 2).size();
 
-			if (enemiesCount == 2) continue;
+			string info = "gather food";
 
-			// if ant has no task
+			// Enemy near food AND close enough to food.
+			const auto dist = state.EuclideanDistance(myAnt, foodLoc);
+			const bool acceptTrade = (isEnemyNearFood && dist < 3);
+			if (acceptTrade) info += " (trade ant to not loose food)";
+
+			if (!acceptTrade || enemiesCount > 1) continue;
+
+			// If ant has no task.
 			const bool isAntBusyWithFood = containsValue(targets, myAnt);
 			if (!isAntBusyWithFood)
 			{
@@ -147,7 +156,7 @@ void Bot::gatherFood()
 				aStar.AStarSearch(myAnt, foodLoc, cameFrom, costSoFar);
 				const std::vector<Location> res = aStar.ReconstructPath(myAnt, foodLoc, cameFrom);
 				if (!res.empty()) {
-					makeMove(myAnt, res.front(), "gather food");
+					makeMove(myAnt, res.front(), info);
 
 				}
 			}
