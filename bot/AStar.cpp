@@ -5,7 +5,7 @@
 
 AStar::AStar() = default;
 
-std::set<Location> AStar::Neighbors(Location loc, bool isStart) const
+std::set<Location> AStar::Neighbors(Location loc, bool isStart, Location goal) const
 {
 	std::set<Location> results;
 
@@ -17,6 +17,13 @@ std::set<Location> AStar::Neighbors(Location loc, bool isStart) const
 			// Tiles farther than start are okay because own ants will probably move.
 			continue;
 		}
+
+		// Allows to search within a radius without minding water, useful for BFS.
+		if (goal != Location{ -1, -1 } && next == goal && _state->grid[goal.row][goal.col].isWater)
+		{
+			results.insert(next);
+		}
+
 		if (!_state->grid[next.row][next.col].isWater) {
 			results.insert(next);
 		}
@@ -123,8 +130,7 @@ std::map<Location, Location> AStar::BreadthFirstSearch(Location start, Location 
 		return cameFrom;
 	}
 
-	// Allows to search within a radius without minding water.
-	// TODO: Put back? what if we choose a goal and we step on a water tile by accident?
+	// No check for water here to allow to search within a radius without minding water.
 	//if (_state->grid[goal.row][goal.col].isWater) {
 	//	_state->bug << "Destination is not a valid target (water tile) " << goal << std::endl;
 	//	return cameFrom;
@@ -151,7 +157,7 @@ std::map<Location, Location> AStar::BreadthFirstSearch(Location start, Location 
 			break;
 		}
 
-		for (auto next : Neighbors(current, false)) {
+		for (auto next : Neighbors(current, false, goal)) {
 			if (cameFrom.find(next) == cameFrom.end()) {
 				// Ugly but working multiple conds, still not generic.
 				if (searchForType != UNKNOWN) {

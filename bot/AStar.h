@@ -37,7 +37,7 @@ class AStar
 		}
 	};
 
-	std::set<Location> Neighbors(Location loc, bool isStart) const;
+	std::set<Location> Neighbors(Location loc, bool isStart, Location goal = Location{ -1, -1 }) const;
 
 public:
 	AStar();
