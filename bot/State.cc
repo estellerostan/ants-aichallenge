@@ -93,6 +93,13 @@ Location State::getLocation(const Location &loc, int direction)
                      (loc.col + DIRECTIONS[direction][1] + cols) % cols );
 };
 
+//returns the new location from moving in a given direction for a specified length with the edges wrapped
+Location State::getLocation(const Location& loc, int direction, int length)
+{
+    return Location((loc.row + (DIRECTIONS[direction][0] * length) + rows) % rows,
+        (loc.col + (DIRECTIONS[direction][1] * length) + cols) % cols);
+};
+
 std::vector<int> State::getDirections(Location l1, Location l2) {
     std::vector<int> directions = std::vector<int>();
 
