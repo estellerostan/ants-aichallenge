@@ -237,12 +237,14 @@ void Bot::attackHills()
 		{
 			const Location myAnt = from.first;
 
-			// Don't prioritize if enemies nearby (3 for now)
+			// Don't prioritize if enemies nearby (5 for now) and if there is more than one ant attacking the hill
+			// For example: one lonesome ant can try to attack a hill (worst case: trade, huge win possible),
+			//			    but a group should focus on attacking enemies first to minimize the loss of own ants (they all focus on the same task).
 			// TODO: This may need to be removed when changing strategy.
-			const Location enemyRadius{ state.getLocation(myAnt, 2, 3) };
+			const Location enemyRadius{ state.getLocation(myAnt, 2, 5) };
 			const auto enemiesCount = aStar.BreadthFirstSearch(myAnt, enemyRadius, ENEMYANT, 2).size();
 
-			if (enemiesCount > 1) {
+			if (antLoc.size() > 1 && enemiesCount > 0) {
 				continue;
 			}
 
