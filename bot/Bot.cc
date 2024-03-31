@@ -119,6 +119,8 @@ void Bot::setup()
 	{
 		orders[myHill] = Location(-1, -1);
 	}
+
+	_attackGroups.clear();
 }
 
 void Bot::gatherFood()
@@ -267,7 +269,7 @@ void Bot::attackHills()
 	}
 }
 
-void Bot::attackAnts()
+void Bot::CreateAttackGroups()
 {
     // minimax: group ants by attacks
     std::vector<std::tuple<double, Location, Location>> attackGroups;
@@ -280,13 +282,13 @@ void Bot::attackAnts()
                 auto dist = state.EuclideanDistance(antLoc, enemyAnt);
                 if (dist <= 6) // TODO: or another number?
                 {
-                    auto position = find_if(attackGroups.begin(), attackGroups.end(),
+                    auto position = find_if(_attackGroups.begin(), _attackGroups.end(),
                         [=](auto item)
                         {
                             return get< 1 >(item) == antLoc;
                         });
 
-                    if (position != attackGroups.end())
+                    if (position != _attackGroups.end())
                     {
                         // avoid duplicates somehow
                         //state.bug << "dup? " << antLoc << endl;
@@ -295,15 +297,19 @@ void Bot::attackAnts()
 
                     // TODO: restrict size of attack groups by location instead of by the size of the vector to avoid timeouts
                     // the vector should be split by zones to do that
-                    if (attackGroups.size() > 5) continue;
+                    if (_attackGroups.size() > 5) continue;
                         
-                    attackGroups.emplace_back(dist, antLoc, enemyAnt);
+                    _attackGroups.emplace_back(dist, antLoc, enemyAnt);
                 }
             }
         }
     }
+    }
 
-    for (auto res : attackGroups)
+void Bot::attackAnts()
+{
+	CreateAttackGroups();
+    for (auto res : _attackGroups)
     {
         const Location antLoc = std::get<1>(res);
         const Location enemyLoc = std::get<2>(res);
