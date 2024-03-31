@@ -13,42 +13,39 @@
                            DEBUG is not defined.
     example:
         Bug bug;
-        bug.open("./debug.txt");
-        bug << state << endl;
+        bug.Open("./debug.txt");
+        bug << _state << endl;
         bug << "testing" << 2.0 << '%' << endl;
-        bug.close();
+        bug.Close();
 */
 struct Bug
 {
     std::ofstream file;
 
-    Bug()
-    {
-
-    };
+    Bug() = default;
 
     //opens the specified file
-    inline void open(const std::string &filename)
+    void Open(const std::string &r_filename)
     {
         #ifdef DEBUG
-            file.open(filename.c_str());
+            file.open(r_filename.c_str());
         #endif
-    };
+    }
 
     //closes the ofstream
-    inline void close()
+    void Close()
     {
         #ifdef DEBUG
             file.close();
         #endif
-    };
+    }
 };
 
 //output function for endl
-inline Bug& operator<<(Bug &bug, std::ostream& (*manipulator)(std::ostream&))
+inline Bug& operator<<(Bug &bug, std::ostream& (*p_manipulator)(std::ostream&))
 {
     #ifdef DEBUG
-        bug.file << manipulator;
+        bug.file << p_manipulator;
     #endif
 
     return bug;
@@ -56,13 +53,13 @@ inline Bug& operator<<(Bug &bug, std::ostream& (*manipulator)(std::ostream&))
 
 //output function
 template <class T>
-inline Bug& operator<<(Bug &bug, const T &t)
+inline Bug& operator<<(Bug &r_bug, const T &r_t)
 {
     #ifdef DEBUG
-        bug.file << t;
+        r_bug.file << r_t;
     #endif
 
-    return bug;
+    return r_bug;
 };
 
 #endif //BUG_H_

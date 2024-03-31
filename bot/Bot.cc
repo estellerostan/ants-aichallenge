@@ -5,107 +5,107 @@ using namespace std;
 //constructor
 Bot::Bot()
 {
-    miniMax = MiniMax(&state);
-	aStar = AStar(&state);
+    _miniMax = MiniMax(&_state);
+	_aStar = AStar(&_state);
 };
 
 //plays a single game of Ants.
-void Bot::playGame()
+void Bot::PlayGame()
 {
 	//reads the game parameters and sets up
-	cin >> state;
-	state.setup();
-	endTurn();
+	cin >> _state;
+	_state.Setup();
+	EndTurn();
 
 	//continues making moves while the game is not over
-	while (cin >> state)
+	while (cin >> _state)
 	{
-		state.updateVisionInformation();
-		makeMoves();
-		endTurn();
+		_state.UpdateVisionInformation();
+		MakeMoves();
+		EndTurn();
 	}
 }
 
 //makes the bots moves for the turn
-void Bot::makeMoves()
+void Bot::MakeMoves()
 {
-	state.bug << "turn " << state.turn << ":" << endl;
-	state.bug << state << endl;
+	_state.bug << "turn " << _state.turn << ":" << endl;
+	_state.bug << _state << endl;
 
-    setup();
-    gatherFood();
-    attackHills();
-    attackAnts();
+    Setup();
+    GatherFood();
+    AttackHills();
+    AttackAnts();
 	// TODO: fix perf problems for large maps (of 6p with time taken > 100ms)
 	// explore unseen areas
-	exploreMap();
-	unblockHills();
+	ExploreMap();
+	UnblockHills();
 
 	// TODO: Remove this test.
 	const Location start{ 0, 28 }, goal{ 27, 10 };
 	std::map<Location, Location> cameFrom;
 	std::map<Location, double> costSoFar;
-	aStar.AStarSearch(start, goal, cameFrom, costSoFar);
-	const std::vector<Location> res = aStar.ReconstructPath(start, goal, cameFrom);
-	//state.bug << "AStar: " << res.size() << endl;
+	_aStar.AStarSearch(start, goal, cameFrom, costSoFar);
+	const std::vector<Location> res = _aStar.ReconstructPath(start, goal, cameFrom);
+	//_state.bug << "AStar: " << res.size() << endl;
 	if (!res.empty()) {
-		//state.bug << "next move: " << res.front() << endl; // Only if goal =/= start and goal not water.
+		//_state.bug << "next move: " << res.front() << endl; // Only if goal =/= start and goal not water.
 	}
 	for (auto from : res)
 	{
-		//state.bug << from << endl;
+		//_state.bug << from << endl;
 	}
 
 	// TODO: Remove this test.
 	const Location startBFS{ 30, 19 }, goalBFS{ 31, 10 };
-	const auto resBFS = aStar.BreadthFirstSearch(startBFS, goalBFS);
-	//state.bug << "BFS: " << resBFS.size() << endl;
+	const auto resBFS = _aStar.BreadthFirstSearch(startBFS, goalBFS);
+	//_state.bug << "BFS: " << resBFS.size() << endl;
 	std::vector<Location> foodLocs;
 	for (std::pair<Location, Location> from : resBFS)
 	{
-		if (state.grid[from.first.row][from.first.col].isFood)
+		if (_state.grid[from.first.row][from.first.col].isFood)
 		{
 			foodLocs.push_back(from.first);
-			//state.bug << from.first << endl;
+			//_state.bug << from.first << endl;
 		}
 	}
-	//state.bug << "food amount:" << foodLocs.size() << endl;
+	//_state.bug << "food amount:" << foodLocs.size() << endl;
 
 	// TODO: Remove this test.
 	const Location startBFS2{ 9, 16 }, goalBFS2{ 15, 16 };
-	const auto resBFS2 = aStar.BreadthFirstSearch(startBFS2, goalBFS2, ENEMYANT, 5);
-	//state.bug << "BFS2: " << resBFS2.size() << endl;
+	const auto resBFS2 = _aStar.BreadthFirstSearch(startBFS2, goalBFS2, ENEMYANT, 5);
+	//_state.bug << "BFS2: " << resBFS2.size() << endl;
 	for (std::pair<Location, Location> from : resBFS2)
 	{
-		// state.bug << "enemies near " << from.first << endl;
+		// _state.bug << "enemies near " << from.first << endl;
 	}
 
-	state.bug << "time taken: " << state.timer.getTime() << "ms" << endl << endl;
+	_state.bug << "time taken: " << _state.timer.GetTime() << "ms" << endl << endl;
 }
 
-void Bot::setup()
+void Bot::Setup()
 {
-    orders.clear();
-    targets.clear();
-    miniMax.myAnts.clear();
-    miniMax.enemyAnts.clear();
+    _orders.clear();
+    _targets.clear();
+    _miniMax.myAnts.clear();
+    _miniMax.enemyAnts.clear();
 
 	// add all locations to unseen tiles set, run once
-	// necessary for Bot::exploreMap
-	if (unseenTiles.empty()) {
-		for (int row = 0; row < state.rows; row++) {
-			for (int col = 0; col < state.cols; col++) {
-				unseenTiles.insert(Location(row, col));
+	// necessary for Bot::ExploreMap
+	if (_unseenTiles.empty()) {
+		for (int row = 0; row < _state.rows; row++) {
+			for (int col = 0; col < _state.cols; col++) {
+				_unseenTiles.insert(Location(row, col));
 			}
 		}
 	}
 	// remove any tiles that can be seen, run each turn
-	for (auto iter = unseenTiles.begin(); iter != unseenTiles.end();)
+	for (auto iter = _unseenTiles.begin(); iter != _unseenTiles.end();)
 	{
-		if (state.grid[iter->row][iter->col].isVisible)
+		if (_state.grid[iter->row][iter->col].isVisible)
 		{
-			iter = unseenTiles.erase(iter);
-			//state.bug << "seen: " << iter->row << " " << iter->col << "\n";
+			iter = _unseenTiles.erase(iter);
+			//_state.bug << "seen: " << iter->row << " " << iter->col << "\n";
 		}
 		else
 		{
@@ -114,36 +114,36 @@ void Bot::setup()
 	}
 
 	// prevent stepping on own hill
-	// necessary for Bot::unblockHills
-	for (Location myHill : state.myHills)
+	// necessary for Bot::UnblockHills
+	for (Location myHill : _state.myHills)
 	{
-		orders[myHill] = Location(-1, -1);
+		_orders[myHill] = Location(-1, -1);
 	}
 
 	_attackGroups.clear();
 }
 
-void Bot::gatherFood()
+void Bot::GatherFood()
 {
 	// find ant close to food
-	for (const Location foodLoc : state.food)
+	for (const Location foodLoc : _state.food)
 	{
 		// TODO: Make BFS radius smaller to reduce time taken?
-		const Location start = foodLoc, goal{ state.getLocation(foodLoc, 2, 5) };
-		const auto antLoc = aStar.BreadthFirstSearch(start, goal, MYANT);
+		const Location start = foodLoc, goal{ _state.GetLocation(foodLoc, 2, 5) };
+		const auto antLoc = _aStar.BreadthFirstSearch(start, goal, MYANT);
 
 		for (std::pair<Location, Location> from : antLoc)
 		{
-			const Location myAnt = from.first, enemiesRadius{ state.getLocation(myAnt, 2, 3) }, enemyRadius{ state.getLocation(foodLoc, 2, 2) };
+			const Location myAnt = from.first, enemiesRadius{ _state.GetLocation(myAnt, 2, 3) }, enemyRadius{ _state.GetLocation(foodLoc, 2, 2) };
 			// Prioritize own food over enemy food.
-			const auto isEnemyNearFood = aStar.BreadthFirstSearch(foodLoc, enemyRadius, ENEMYANT, 5).size() == 1;
+			const auto isEnemyNearFood = _aStar.BreadthFirstSearch(foodLoc, enemyRadius, ENEMYANT, 5).size() == 1;
 			// Don't prioritize if enemies nearby.
-			const auto enemiesCount = aStar.BreadthFirstSearch(myAnt, enemiesRadius, ENEMYANT, 2).size();
+			const auto enemiesCount = _aStar.BreadthFirstSearch(myAnt, enemiesRadius, ENEMYANT, 2).size();
 
 			string info = "gather food";
 
 			// Enemy near food AND close enough to food.
-			const auto dist = state.ManhattanDistance(myAnt, foodLoc);
+			const auto dist = _state.ManhattanDistance(myAnt, foodLoc);
 			const bool acceptTrade = (isEnemyNearFood && dist < 3);
 			if (acceptTrade) info += " (trade ant to not loose food)";
 
@@ -152,33 +152,33 @@ void Bot::gatherFood()
 			}
 
 			// If ant has no task.
-			const bool isAntBusyWithFood = containsValue(targets, myAnt);
+			const bool isAntBusyWithFood = ContainsValue(_targets, myAnt);
 			if (!isAntBusyWithFood)
 			{
 				std::map<Location, Location> cameFrom;
 				std::map<Location, double> costSoFar;
-				aStar.AStarSearch(myAnt, foodLoc, cameFrom, costSoFar);
-				const std::vector<Location> res = aStar.ReconstructPath(myAnt, foodLoc, cameFrom);
+				_aStar.AStarSearch(myAnt, foodLoc, cameFrom, costSoFar);
+				const std::vector<Location> res = _aStar.ReconstructPath(myAnt, foodLoc, cameFrom);
 				if (!res.empty()) {
-					makeMove(myAnt, res.front(), info);
+					MakeMove(myAnt, res.front(), info);
 				}
 			}
 		}
 	}
 }
 
-void Bot::unblockHills()
+void Bot::UnblockHills()
 {
-    for (Location hillLoc : state.myHills)
+    for (Location hillLoc : _state.myHills)
     {
-        auto it = std::find(state.myAnts.cbegin(), state.myAnts.cend(), hillLoc);
-        const bool hasMove = containsValue(orders, hillLoc);
-        if (it != state.myAnts.end() && !hasMove)
+        auto it = std::find(_state.myAnts.cbegin(), _state.myAnts.cend(), hillLoc);
+        const bool hasMove = ContainsValue(_orders, hillLoc);
+        if (it != _state.myAnts.end() && !hasMove)
         {
             // an ant is on a hill
             for (int d = 0; d < TDIRECTIONS; d++)
             {
-                if (makeMove(hillLoc, d, "unblock hills"))
+                if (MakeMove(hillLoc, d, "unblock hills"))
                 {
                     break;
                 }
@@ -187,22 +187,22 @@ void Bot::unblockHills()
     }
 }
 
-void Bot::exploreMap()
+void Bot::ExploreMap()
 {
-    for (Location antLoc : state.myAnts)
+    for (Location antLoc : _state.myAnts)
     {
-        const bool hasMove = containsValue(orders, antLoc);
+        const bool hasMove = ContainsValue(_orders, antLoc);
         if (!hasMove)
         {
             std::vector<std::tuple<int, Location>> unseenDist;
-            for (Location unseenLoc : unseenTiles)
+            for (Location unseenLoc : _unseenTiles)
             {
-                auto dist = state.EuclideanDistance(antLoc, unseenLoc);
+                auto dist = _state.EuclideanDistance(antLoc, unseenLoc);
                 unseenDist.emplace_back(dist, unseenLoc);
                 // avoid timeout, even if the search is not complete
                 // better than being removed from the game
-				if (state.timeRemaining() < 200) {
-					state.bug << "explore timeout" << endl;
+				if (_state.TimeRemaining() < 200) {
+					_state.bug << "explore timeout" << endl;
 					break;
 				}
             }
@@ -210,7 +210,7 @@ void Bot::exploreMap()
             for (auto res : unseenDist) 
             {
                 Location unseenLoc = std::get<1>(res);
-                if (makeMove(antLoc, unseenLoc, "explore")) {
+                if (MakeMove(antLoc, unseenLoc, "explore")) {
                     break;
                 }
             }
@@ -218,25 +218,25 @@ void Bot::exploreMap()
     }
 }
 
-void Bot::attackHills()
+void Bot::AttackHills()
 {
 	// Do not attack hills at the start of the game (or when too weak), even if we can see/ win another hill.
-	if (state.myAnts.size() < 10) return;
+	if (_state.myAnts.size() < 10) return;
 
-	for (auto enemyHill : state.enemyHills)
+	for (auto enemyHill : _state.enemyHills)
 	{
-		if (enemyHills.count(enemyHill) == 0)
+		if (_enemyHills.count(enemyHill) == 0)
 		{
-			enemyHills.insert(enemyHill);
+			_enemyHills.insert(enemyHill);
 		}
 	}
 
 	// find ant close to hills
-	// in the same way Bot::gatherFood works.
-	for (const auto hillLoc : enemyHills)
+	// in the same way Bot::GatherFood works.
+	for (const auto hillLoc : _enemyHills)
 	{
-		const Location start = hillLoc, goal{ state.getLocation(hillLoc, 2, 20) };
-		const auto antLoc = aStar.BreadthFirstSearch(start, goal, MYANT, 5);
+		const Location start = hillLoc, goal{ _state.GetLocation(hillLoc, 2, 20) };
+		const auto antLoc = _aStar.BreadthFirstSearch(start, goal, MYANT, 5);
 
 		for (std::pair<Location, Location> from : antLoc)
 		{
@@ -246,23 +246,23 @@ void Bot::attackHills()
 			// For example: one lonesome ant can try to attack a hill (worst case: trade, huge win possible),
 			//			    but a group should focus on attacking enemies first to minimize the loss of own ants (they all focus on the same task).
 			// TODO: This may need to be removed when changing strategy.
-			const Location enemyRadius{ state.getLocation(myAnt, 2, 5) };
-			const auto enemiesCount = aStar.BreadthFirstSearch(myAnt, enemyRadius, ENEMYANT, 2).size();
+			const Location enemyRadius{ _state.GetLocation(myAnt, 2, 5) };
+			const auto enemiesCount = _aStar.BreadthFirstSearch(myAnt, enemyRadius, ENEMYANT, 2).size();
 
 			if (antLoc.size() > 1 && enemiesCount > 0) {
 				continue;
 			}
 
 			// If ant has no task.
-			const bool hasMove = containsValue(orders, myAnt);
+			const bool hasMove = ContainsValue(_orders, myAnt);
 			if (!hasMove)
 			{
 				std::map<Location, Location> cameFrom;
 				std::map<Location, double> costSoFar;
-				aStar.AStarSearch(myAnt, hillLoc, cameFrom, costSoFar);
-				const std::vector<Location> res = aStar.ReconstructPath(myAnt, hillLoc, cameFrom);
+				_aStar.AStarSearch(myAnt, hillLoc, cameFrom, costSoFar);
+				const std::vector<Location> res = _aStar.ReconstructPath(myAnt, hillLoc, cameFrom);
 				if (!res.empty()) {
-					makeMove(myAnt, res.front(), "attack hills");
+					MakeMove(myAnt, res.front(), "attack hills");
 				}
 			}
 		}
@@ -273,13 +273,13 @@ void Bot::CreateAttackGroups()
 {
     // minimax: group ants by attacks
     std::vector<std::tuple<double, Location, Location>> attackGroups;
-    for (Location enemyAnt : state.enemyAnts)
+    for (Location enemyAnt : _state.enemyAnts)
     {
-        for (Location antLoc : state.myAnts)
+        for (Location antLoc : _state.myAnts)
         {
-            const bool hasMove = containsValue(orders, antLoc);
+            const bool hasMove = ContainsValue(_orders, antLoc);
             if (!hasMove) {
-                auto dist = state.EuclideanDistance(antLoc, enemyAnt);
+                auto dist = _state.EuclideanDistance(antLoc, enemyAnt);
                 if (dist <= 6) // TODO: or another number?
                 {
                     auto position = find_if(_attackGroups.begin(), _attackGroups.end(),
@@ -291,7 +291,7 @@ void Bot::CreateAttackGroups()
                     if (position != _attackGroups.end())
                     {
                         // avoid duplicates somehow
-                        //state.bug << "dup? " << antLoc << endl;
+                        //_state.bug << "dup? " << antLoc << endl;
                         continue;
                     }
 
@@ -306,34 +306,34 @@ void Bot::CreateAttackGroups()
     }
     }
 
-void Bot::attackAnts()
+void Bot::AttackAnts()
 {
 	CreateAttackGroups();
     for (auto res : _attackGroups)
     {
         const Location antLoc = std::get<1>(res);
         const Location enemyLoc = std::get<2>(res);
-        miniMax.myAnts.push_back(new Ant(antLoc));
-        miniMax.enemyAnts.push_back(new Ant(enemyLoc));
-        //state.bug << antLoc << " vs " << enemyLoc << endl;
+        _miniMax.myAnts.push_back(new Ant(antLoc));
+        _miniMax.enemyAnts.push_back(new Ant(enemyLoc));
+        //_state.bug << antLoc << " vs " << enemyLoc << endl;
     }
 
-    miniMax.Max(0);
-    for (const Ant* myAnt : miniMax.myAnts) {
-        if (myAnt->bestDest != Location(-1, -1)) makeMove(myAnt->loc, myAnt->bestDest, "attack ants"); // else?
+    _miniMax.Max(0);
+    for (const Ant* myAnt : _miniMax.myAnts) {
+        if (myAnt->bestDest != Location(-1, -1)) MakeMove(myAnt->loc, myAnt->bestDest, "attack ants"); // else?
     }
 }
 
-bool Bot::containsValue(std::map<Location, Location>& locMap, const Location& antLoc)
+bool Bot::ContainsValue(std::map<Location, Location>& r_locMap, const Location& r_antLoc)
 {
-	if (locMap.empty())
+	if (r_locMap.empty())
 	{
 		return false;
 	}
 
-	for (auto it = locMap.begin(); it != locMap.end(); ++it)
+	for (auto it = r_locMap.begin(); it != r_locMap.end(); ++it)
 	{
-		if (it->second == antLoc)
+		if (it->second == r_antLoc)
 		{
 			return true;
 		}
@@ -342,14 +342,14 @@ bool Bot::containsValue(std::map<Location, Location>& locMap, const Location& an
 }
 
 
-bool Bot::makeMove(const Location& loc, const Location& dest, const string& from) {
-    const std::vector<int> directions = state.getDirections(loc, dest);
+bool Bot::MakeMove(const Location& r_loc, const Location& r_dest, const string& r_from) {
+    const std::vector<int> directions = _state.GetDirections(r_loc, r_dest);
 
     for (const int d : directions)
     {
-	    if (makeMove(loc, d, from))
+	    if (MakeMove(r_loc, d, r_from))
 	    {
-		    targets[dest] = loc;
+		    _targets[r_dest] = r_loc;
 		    return true;
 	    }
     }
@@ -357,33 +357,33 @@ bool Bot::makeMove(const Location& loc, const Location& dest, const string& from
 	return false;
 };
 
-bool Bot::makeMove(const Location& loc, const int direction, const string& from)
+bool Bot::MakeMove(const Location& r_loc, const int direction, const string& r_from)
 {
-	const Location newLoc = state.getLocation(loc, direction);
+	const Location newLoc = _state.GetLocation(r_loc, direction);
 
-	const bool canMakeMove = state.isUnoccupied(newLoc) && orders.count(newLoc) == 0;
+	const bool canMakeMove = _state.IsUnoccupied(newLoc) && _orders.count(newLoc) == 0;
 	if (!canMakeMove)
 	{
 		return false;
 	}
 
-    state.makeMove(loc, direction);
-    orders[newLoc] = loc;
+    _state.MakeMove(r_loc, direction);
+    _orders[newLoc] = r_loc;
 
     // debug
-    if (!from.empty()) {
-        state.bug << "move from " << from << ": " << loc << " (" << CDIRECTIONS[direction] << ") to " << newLoc << "\n";
+    if (!r_from.empty()) {
+        _state.bug << "move r_from " << r_from << ": " << r_loc << " (" << CDIRECTIONS[direction] << ") to " << newLoc << "\n";
     }
 
     return true;
 };
 
 //finishes the turn
-void Bot::endTurn()
+void Bot::EndTurn()
 {
-	if (state.turn > 0)
-		state.reset();
-	state.turn++;
+	if (_state.turn > 0)
+		_state.Reset();
+	_state.turn++;
 
 	cout << "go" << endl;
 };

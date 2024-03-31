@@ -28,20 +28,19 @@ const int DIRECTIONS[4][2] = { {-1, 0}, {0, 1}, {1, 0}, {0, -1} };      //{N, E,
 */
 struct State
 {
-public:
     /*
         Variables
     */
     int rows, cols,
         turn, turns,
         noPlayers;
-    double attackradius, spawnradius, viewradius;
-    double loadtime, turntime;
+    double attackRadius, spawnRadius, viewRadius;
+    double loadTime, turnTime;
     std::vector<double> scores;
-    bool gameover;
+    bool isGameOver;
     int64_t seed;
 
-    std::vector<std::vector<Square> > grid;
+    std::vector<std::vector<Square>> grid;
     std::vector<Location> myAnts, enemyAnts, myHills, enemyHills, food;
 
     Timer timer;
@@ -53,27 +52,27 @@ public:
     State();
     ~State();
 
-    void setup();
-    void reset();
+    void Setup();
+    void Reset();
 
-    double timeRemaining();
+    double TimeRemaining();
 
-    void makeMove(const Location &loc, int direction);
-    void fakeMove(const Location &loc, int direction);
-    void undoFakeMove(const Location &loc, int direction);
+    void MakeMove(const Location &r_loc, int direction);
+    void FakeMove(const Location &r_loc, int direction);
+    void UndoFakeMove(const Location &r_loc, int direction);
 
-    double EuclideanDistance(const Location &loc1, const Location &loc2) const;
+    double EuclideanDistance(const Location &r_loc1, const Location &r_loc2) const;
     float ManhattanDistance(Location current, Location destination) const;
-    Location getLocation(const Location &startLoc, int direction);
-    Location getLocation(const Location& startLoc, int direction, int length);
-    std::vector<int> getDirections(Location l1, Location l2);
-    bool isUnoccupied(const Location &loc) const;
-    bool fakeIsUnoccupied(const Location &loc) const;
+    Location GetLocation(const Location &r_startLoc, int direction);
+    Location GetLocation(const Location& r_startLoc, int direction, int length);
+    std::vector<int> GetDirections(Location l1, Location l2);
+    bool IsUnoccupied(const Location &r_loc) const;
+    bool FakeIsUnoccupied(const Location &r_loc) const;
 
-    void updateVisionInformation();
+    void UpdateVisionInformation();
 };
 
-std::ostream& operator<<(std::ostream &os, const State &state);
-std::istream& operator>>(std::istream &is, State &state);
+std::ostream& operator<<(std::ostream &r_os, const State &r_state);
+std::istream& operator>>(std::istream &r_is, State &r_state);
 
 #endif //STATE_H_

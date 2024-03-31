@@ -17,12 +17,12 @@
 
         };
 
-        void start()
+        void Start()
         {
             startTime = clock();
         };
 
-        double getTime()
+        double GetTime()
         {
             currentTime = clock();
 
@@ -44,14 +44,14 @@
         };
 
         //starts the timer
-        void start()
+        void Start()
         {
             gettimeofday(&timer, NULL);
             startTime = timer.tv_sec+(timer.tv_usec/1000000.0);
         };
 
         //returns how long it has been since the timer was last started in milliseconds
-        double getTime()
+        double GetTime()
         {
             gettimeofday(&timer, NULL);
             currentTime = timer.tv_sec+(timer.tv_usec/1000000.0);

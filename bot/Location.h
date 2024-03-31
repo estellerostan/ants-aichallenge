@@ -20,27 +20,27 @@ struct Location
 	}
 
 	// for file debug log
-	friend std::ostream& operator <<(std::ostream& os, Location const& a)
+	friend std::ostream& operator <<(std::ostream& r_os, Location const& r_a)
 	{
-		return os << "(" << a.row << ';' << a.col << ")";
+		return r_os << "(" << r_a.row << ';' << r_a.col << ")";
 	}
 };
 
-inline bool operator<(Location const& left, Location const& right)
+inline bool operator<(Location const& r_left, Location const& r_right)
 {
-	return left.row < right.row || (right.row >= left.row && left.col < right.col); // adapted from std::pair operator<
+	return r_left.row < r_right.row || (r_right.row >= r_left.row && r_left.col < r_right.col); // adapted from std::pair operator<
 }
 
-inline bool operator==(Location const& left, Location const& right)
+inline bool operator==(Location const& r_left, Location const& r_right)
 {
-	return left.row == right.row && left.col == right.col;
+	return r_left.row == r_right.row && r_left.col == r_right.col;
 }
 
-inline bool operator!=(Location const& left, Location const& right)
+inline bool operator!=(Location const& r_left, Location const& r_right)
 {
 	// the inequality operator is typically implemented in terms of operator==
 	// Source: https://en.cppreference.com/w/cpp/language/operators#Comparison_operators
-	return !(left == right);
+	return !(r_left == r_right);
 }
 
 #endif //LOCATION_H_
