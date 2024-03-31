@@ -40,6 +40,11 @@ struct Bot
 	bool makeMove(const Location& loc, const Location& dest, const std::string& from = {}); // makes a move following a destination for a single ant
 	bool makeMove(const Location& loc, int direction, const std::string& from = {}); // makes a move to a direction for a single ant
 	void endTurn();     //indicates to the engine that it has made its moves
+
+private:
+	std::vector<std::tuple<double, Location, Location>> _attackGroups;
+
+	void CreateAttackGroups();
 };
 
 #endif //BOT_H_
