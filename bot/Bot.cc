@@ -372,7 +372,7 @@ bool Bot::MakeMove(const Location& r_loc, const int direction, const string& r_f
 
     // debug
     if (!r_from.empty()) {
-        _state.bug << "move r_from " << r_from << ": " << r_loc << " (" << CDIRECTIONS[direction] << ") to " << newLoc << "\n";
+        _state.bug << "move from " << r_from << ": " << r_loc << " (" << CDIRECTIONS[direction] << ") to " << newLoc << "\n";
     }
 
     return true;
