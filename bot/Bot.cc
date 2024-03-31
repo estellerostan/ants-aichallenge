@@ -226,34 +226,42 @@ void Bot::attackHills()
 		}
 	}
 
-    std::vector<std::tuple<double, Location, Location>> antDistToHill;
-    for (auto hillLoc : enemyHills)
-    {
-        for (Location antLoc : state.myAnts)
-        {
-			// Don't prioritize if enemies nearby (3 for now)
-			// TODO: This may need to be removed when changing strategy.
-			const Location enemyRadius{ state.getLocation(antLoc, 2, 3) };
-			const auto enemiesCount = aStar.BreadthFirstSearch(antLoc, enemyRadius, ENEMYANT, 2).size();
+	// find ant close to hills
+	// in the same way Bot::gatherFood works.
+	for (const auto hillLoc : enemyHills)
+	{
+		const Location start = hillLoc, goal{ state.getLocation(hillLoc, 2, 20) };
+		const auto antLoc = aStar.BreadthFirstSearch(start, goal, MYANT, 5);
 
-			if (enemiesCount > 1) {
+		for (std::pair<Location, Location> from : antLoc)
+		{
+			const Location myAnt = from.first;
+
+			// Don't prioritize if enemies nearby (5 for now) and if there is more than one ant attacking the hill
+			// For example: one lonesome ant can try to attack a hill (worst case: trade, huge win possible),
+			//			    but a group should focus on attacking enemies first to minimize the loss of own ants (they all focus on the same task).
+			// TODO: This may need to be removed when changing strategy.
+			const Location enemyRadius{ state.getLocation(myAnt, 2, 5) };
+			const auto enemiesCount = aStar.BreadthFirstSearch(myAnt, enemyRadius, ENEMYANT, 2).size();
+
+			if (antLoc.size() > 1 && enemiesCount > 0) {
 				continue;
 			}
 
-            const bool hasMove = containsValue(orders, antLoc);
-            if (!hasMove) {
-                auto dist = state.EuclideanDistance(antLoc, hillLoc);
-                antDistToHill.emplace_back(dist, antLoc, hillLoc);
-            }
-        }
-    }
-    std::sort(antDistToHill.begin(), antDistToHill.end());
-    for (auto res : antDistToHill)
-    {
-        Location antLoc = std::get<1>(res);
-        Location hillLoc = std::get<2>(res);
-        makeMove(antLoc, hillLoc, "attack hills");
-    }
+			// If ant has no task.
+			const bool hasMove = containsValue(orders, myAnt);
+			if (!hasMove)
+			{
+				std::map<Location, Location> cameFrom;
+				std::map<Location, double> costSoFar;
+				aStar.AStarSearch(myAnt, hillLoc, cameFrom, costSoFar);
+				const std::vector<Location> res = aStar.ReconstructPath(myAnt, hillLoc, cameFrom);
+				if (!res.empty()) {
+					makeMove(myAnt, res.front(), "attack hills");
+				}
+			}
+		}
+	}
 }
 
 void Bot::attackAnts()
