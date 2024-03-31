@@ -7,13 +7,13 @@ State::State()
 {
     isGameOver = false;
     turn = 0;
-    bug.open("../../debug.log");
+    bug.Open("../../debug.log");
 };
 
 //deconstructor
 State::~State()
 {
-    bug.close();
+    bug.Close();
 };
 
 //sets the state up
@@ -33,12 +33,12 @@ void State::Reset()
     for(int row=0; row<rows; row++)
         for(int col=0; col<cols; col++)
             if(!grid[row][col].isWater)
-                grid[row][col].reset();
+                grid[row][col].Reset();
 };
 
 // Calculates the time left before a timeout, useful to check to abort slow code
 double State::TimeRemaining() {
-    return turnTime - timer.getTime();
+    return turnTime - timer.GetTime();
 }
 
 //outputs move information to the engine
@@ -294,7 +294,7 @@ istream& operator>>(istream &r_is, State &r_state)
             }
             else if(inputType == "ready") //end of parameter input
             {
-                r_state.timer.start();
+                r_state.timer.Start();
                 break;
             }
             else    //unknown line
@@ -361,7 +361,7 @@ istream& operator>>(istream &r_is, State &r_state)
                 if(r_state.isGameOver)
                     r_is.setstate(std::ios::failbit);
                 else
-                    r_state.timer.start();
+                    r_state.timer.Start();
                 break;
             }
             else //unknown line

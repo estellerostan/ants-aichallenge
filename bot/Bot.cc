@@ -80,7 +80,7 @@ void Bot::MakeMoves()
 		// _state.bug << "enemies near " << from.first << endl;
 	}
 
-	_state.bug << "time taken: " << _state.timer.getTime() << "ms" << endl << endl;
+	_state.bug << "time taken: " << _state.timer.GetTime() << "ms" << endl << endl;
 }
 
 void Bot::Setup()

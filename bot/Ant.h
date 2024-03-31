@@ -13,11 +13,11 @@ public:
 	bool isDead = false;
 
 	// for file debug log
-	friend std::ostream& operator <<(std::ostream& os, Ant const& a)
+	friend std::ostream& operator <<(std::ostream& r_os, Ant const& r_a)
 	{
-		return os << "Ant: " << a.loc << std::endl
-			<< "Stats:" << a.nbAttackers << " attackers, dead: " << a.isDead << std::endl
-			<< "Dest: " << a.dest << ", " << a.bestDest << std::endl << std::endl;
+		return r_os << "Ant: " << r_a.loc << std::endl
+			<< "Stats:" << r_a.nbAttackers << " attackers, dead: " << r_a.isDead << std::endl
+			<< "Dest: " << r_a.dest << ", " << r_a.bestDest << std::endl << std::endl;
 	}
 };
 
