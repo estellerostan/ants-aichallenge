@@ -14,7 +14,7 @@
     example:
         Bug bug;
         bug.open("./debug.txt");
-        bug << state << endl;
+        bug << _state << endl;
         bug << "testing" << 2.0 << '%' << endl;
         bug.close();
 */
