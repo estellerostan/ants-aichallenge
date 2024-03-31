@@ -218,6 +218,9 @@ void Bot::exploreMap()
 
 void Bot::attackHills()
 {
+	// Do not attack hills at the start of the game (or when too weak), even if we can see/ win another hill.
+	if (state.myAnts.size() < 10) return;
+
 	for (auto enemyHill : state.enemyHills)
 	{
 		if (enemyHills.count(enemyHill) == 0)
