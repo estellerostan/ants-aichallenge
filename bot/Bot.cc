@@ -14,13 +14,13 @@ void Bot::PlayGame()
 {
 	//reads the game parameters and sets up
 	cin >> _state;
-	_state.setup();
+	_state.Setup();
 	EndTurn();
 
 	//continues making moves while the game is not over
 	while (cin >> _state)
 	{
-		_state.updateVisionInformation();
+		_state.UpdateVisionInformation();
 		MakeMoves();
 		EndTurn();
 	}
@@ -129,12 +129,12 @@ void Bot::GatherFood()
 	for (const Location foodLoc : _state.food)
 	{
 		// TODO: Make BFS radius smaller to reduce time taken?
-		const Location start = foodLoc, goal{ _state.getLocation(foodLoc, 2, 5) };
+		const Location start = foodLoc, goal{ _state.GetLocation(foodLoc, 2, 5) };
 		const auto antLoc = _aStar.BreadthFirstSearch(start, goal, MYANT);
 
 		for (std::pair<Location, Location> from : antLoc)
 		{
-			const Location myAnt = from.first, enemiesRadius{ _state.getLocation(myAnt, 2, 3) }, enemyRadius{ _state.getLocation(foodLoc, 2, 2) };
+			const Location myAnt = from.first, enemiesRadius{ _state.GetLocation(myAnt, 2, 3) }, enemyRadius{ _state.GetLocation(foodLoc, 2, 2) };
 			// Prioritize own food over enemy food.
 			const auto isEnemyNearFood = _aStar.BreadthFirstSearch(foodLoc, enemyRadius, ENEMYANT, 5).size() == 1;
 			// Don't prioritize if enemies nearby.
@@ -201,7 +201,7 @@ void Bot::ExploreMap()
                 unseenDist.emplace_back(dist, unseenLoc);
                 // avoid timeout, even if the search is not complete
                 // better than being removed from the game
-				if (_state.timeRemaining() < 200) {
+				if (_state.TimeRemaining() < 200) {
 					_state.bug << "explore timeout" << endl;
 					break;
 				}
@@ -235,7 +235,7 @@ void Bot::AttackHills()
 	// in the same way Bot::GatherFood works.
 	for (const auto hillLoc : _enemyHills)
 	{
-		const Location start = hillLoc, goal{ _state.getLocation(hillLoc, 2, 20) };
+		const Location start = hillLoc, goal{ _state.GetLocation(hillLoc, 2, 20) };
 		const auto antLoc = _aStar.BreadthFirstSearch(start, goal, MYANT, 5);
 
 		for (std::pair<Location, Location> from : antLoc)
@@ -246,7 +246,7 @@ void Bot::AttackHills()
 			// For example: one lonesome ant can try to attack a hill (worst case: trade, huge win possible),
 			//			    but a group should focus on attacking enemies first to minimize the loss of own ants (they all focus on the same task).
 			// TODO: This may need to be removed when changing strategy.
-			const Location enemyRadius{ _state.getLocation(myAnt, 2, 5) };
+			const Location enemyRadius{ _state.GetLocation(myAnt, 2, 5) };
 			const auto enemiesCount = _aStar.BreadthFirstSearch(myAnt, enemyRadius, ENEMYANT, 2).size();
 
 			if (antLoc.size() > 1 && enemiesCount > 0) {
@@ -343,7 +343,7 @@ bool Bot::ContainsValue(std::map<Location, Location>& r_locMap, const Location& 
 
 
 bool Bot::MakeMove(const Location& r_loc, const Location& r_dest, const string& r_from) {
-    const std::vector<int> directions = _state.getDirections(r_loc, r_dest);
+    const std::vector<int> directions = _state.GetDirections(r_loc, r_dest);
 
     for (const int d : directions)
     {
@@ -359,15 +359,15 @@ bool Bot::MakeMove(const Location& r_loc, const Location& r_dest, const string& 
 
 bool Bot::MakeMove(const Location& r_loc, const int direction, const string& r_from)
 {
-	const Location newLoc = _state.getLocation(r_loc, direction);
+	const Location newLoc = _state.GetLocation(r_loc, direction);
 
-	const bool canMakeMove = _state.isUnoccupied(newLoc) && _orders.count(newLoc) == 0;
+	const bool canMakeMove = _state.IsUnoccupied(newLoc) && _orders.count(newLoc) == 0;
 	if (!canMakeMove)
 	{
 		return false;
 	}
 
-    _state.makeMove(r_loc, direction);
+    _state.MakeMove(r_loc, direction);
     _orders[newLoc] = r_loc;
 
     // debug
@@ -382,7 +382,7 @@ bool Bot::MakeMove(const Location& r_loc, const int direction, const string& r_f
 void Bot::EndTurn()
 {
 	if (_state.turn > 0)
-		_state.reset();
+		_state.Reset();
 	_state.turn++;
 
 	cout << "go" << endl;

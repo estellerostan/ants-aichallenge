@@ -11,8 +11,8 @@ std::set<Location> AStar::Neighbors(Location loc, bool isStart, Location goal) c
 
 	for (int d = 0; d < TDIRECTIONS; d++)
 	{
-		Location next = _state->getLocation(loc, d);
-		if (isStart && !_state->isUnoccupied(next)) {
+		Location next = _state->GetLocation(loc, d);
+		if (isStart && !_state->IsUnoccupied(next)) {
 			// Don't add this neighbor to be able to do the first move.
 			// Tiles farther than start are okay because own ants will probably move.
 			continue;
@@ -50,7 +50,7 @@ void AStar::AStarSearch(Location start, Location goal, std::map<Location, Locati
 	costSoFar[start] = 0;
 
 	while (!frontier.empty()) {
-		if (_state->timeRemaining() < 200) {
+		if (_state->TimeRemaining() < 200) {
 			_state->bug << "A* timeout" << std::endl;
 			// Don't send bad results
 			cameFrom.clear();
@@ -106,7 +106,7 @@ std::vector<Location> AStar::ReconstructPath(Location start, Location goal, std:
 	}
 
 	while (current != start) {
-		if (_state->timeRemaining() < 200) {
+		if (_state->TimeRemaining() < 200) {
 			_state->bug << "A* reconstruct timeout" << std::endl;
 			break;
 		}
@@ -143,7 +143,7 @@ std::map<Location, Location> AStar::BreadthFirstSearch(Location start, Location 
 
 	int found = 0;
 	while (!frontier.empty()) {
-		if (_state->timeRemaining() < 200) {
+		if (_state->TimeRemaining() < 200) {
 			_state->bug << "BFS timeout" << std::endl;
 			// Don't send bad results
 			cameFrom.clear();

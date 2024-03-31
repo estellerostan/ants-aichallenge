@@ -13,7 +13,7 @@ MiniMax::MiniMax(State* state) : _state(state)
 void MiniMax::Max(int antIndex)
 {
 	// TODO: optimize minimax for large groups of ants and lots of attacks at once.
-	if (_state->timeRemaining() < 200) {
+	if (_state->TimeRemaining() < 200) {
 		_state->bug << "minimax (max) timeout" << std::endl;
 		return;
 	}
@@ -24,12 +24,12 @@ void MiniMax::Max(int antIndex)
 		// TODO: optimize/ skip directions
 		for (int d = 0; d < TDIRECTIONS; d++)
 		{
-			const Location newLoc = _state->getLocation(myAnt->loc, d);
-			if (_state->fakeIsUnoccupied(newLoc)) {
-				_state->fakeMove(myAnt->loc, d);
+			const Location newLoc = _state->GetLocation(myAnt->loc, d);
+			if (_state->FakeIsUnoccupied(newLoc)) {
+				_state->FakeMove(myAnt->loc, d);
 				myAnt->dest = newLoc;
 				Max(antIndex + 1);
-				_state->undoFakeMove(myAnt->loc, d);
+				_state->UndoFakeMove(myAnt->loc, d);
 			}
 		}
 	}
@@ -49,7 +49,7 @@ void MiniMax::Max(int antIndex)
 
 int MiniMax::Min(int antIndex)
 {
-	if (_state->timeRemaining() < 200) {
+	if (_state->TimeRemaining() < 200) {
 		_state->bug << "minimax (min) timeout" << std::endl;
 		return bestValue;
 	}
@@ -61,12 +61,12 @@ int MiniMax::Min(int antIndex)
 		// TODO: optimize/ skip directions
 		for (int d = 0; d < TDIRECTIONS; d++)
 		{
-			const Location newLoc = _state->getLocation(enemyAnt->loc, d);
-			if (_state->fakeIsUnoccupied(newLoc)) {
-				_state->fakeMove(enemyAnt->loc, d);
+			const Location newLoc = _state->GetLocation(enemyAnt->loc, d);
+			if (_state->FakeIsUnoccupied(newLoc)) {
+				_state->FakeMove(enemyAnt->loc, d);
 				enemyAnt->dest = newLoc;
 				const int value = Min(antIndex + 1);
-				_state->undoFakeMove(enemyAnt->loc, d);
+				_state->UndoFakeMove(enemyAnt->loc, d);
 				if (value < bestValue)
 				{
 					return -range;
