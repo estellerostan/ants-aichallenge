@@ -33,6 +33,9 @@ void Bot::MakeMoves()
 	_state.bug << _state << endl;
 
     Setup();
+	// TODO: priority?
+	// for now it is at the top because we only have one hill on the map chosen for the contest so we don't want to loose it
+	DefendHills();
     GatherFood();
     AttackHills();
     AttackAnts();
@@ -322,6 +325,39 @@ void Bot::AttackAnts()
     for (const Ant* myAnt : _miniMax.myAnts) {
         if (myAnt->bestDest != Location(-1, -1)) MakeMove(myAnt->loc, myAnt->bestDest, "attack ants"); // else?
     }
+}
+
+void Bot::DefendHills()
+{
+	for (Location myHill : _state.myHills)
+	{
+		// Look for enemies close to hill.
+		const Location start = myHill, goal{ _state.GetLocation(myHill, 2, 10) };
+		const auto enemiesLoc = _aStar.BreadthFirstSearch(start, goal, ENEMYANT, 5);
+		for (const std::pair<Location, Location> loc : enemiesLoc)
+		{
+			// Look for a single own ant to defend the hill: trade.
+			const Location enemyAnt = loc.first;
+			const Location myAnts{ _state.GetLocation(myHill, 2, 20) };
+			const auto antLoc = _aStar.BreadthFirstSearch(enemyAnt, myAnts, MYANT);
+			for (const std::pair<Location, Location> myLoc : antLoc)
+			{
+				// If ant has no task.
+				const Location myAnt = myLoc.first;
+				const bool hasMove = ContainsValue(_orders, myAnt);
+				if (!hasMove)
+				{
+					std::map<Location, Location> cameFrom;
+					std::map<Location, double> costSoFar;
+					_aStar.AStarSearch(myAnt, enemyAnt, cameFrom, costSoFar);
+					const std::vector<Location> res = _aStar.ReconstructPath(myAnt, enemyAnt, cameFrom);
+					if (!res.empty()) {
+						MakeMove(myAnt, res.front(), "defend hill");
+					}
+				}
+			}
+		}
+	}
 }
 
 bool Bot::ContainsValue(std::map<Location, Location>& r_locMap, const Location& r_antLoc)
