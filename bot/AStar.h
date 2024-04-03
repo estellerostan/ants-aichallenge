@@ -70,6 +70,6 @@ public:
 	 * \return Either all the visited locations or the locations matching the wanted type if searchForType is set, with maximum count locations.
 	 *		   If no match was found, return an empty result.
 	 */
-	std::map<Location, Location> BreadthFirstSearch(Location start, Location goal, SquareType searchForType = UNKNOWN, int count = 1) const;
+	std::vector<Location> BreadthFirstSearch(Location start, Location goal, SquareType searchForType = UNKNOWN, int count = 1) const;
 };
 

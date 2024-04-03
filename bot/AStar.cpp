@@ -35,8 +35,8 @@ std::vector<Location> AStar::Neighbors(Location loc, bool isStart, Location goal
 	// so that the sort order is right.
 	std::vector<Location> locations;
 	std::transform(std::begin(results), std::end(results),
-	               std::back_inserter(locations),
-	               [](auto const& pair) { return pair.first; });
+		std::back_inserter(locations),
+		[](auto const& pair) { return pair.first; });
 	return locations;
 }
 
@@ -130,18 +130,18 @@ std::vector<Location> AStar::ReconstructPath(Location start, Location goal, std:
 	return path;
 }
 
-std::map<Location, Location> AStar::BreadthFirstSearch(Location start, Location goal, SquareType searchForType, int count) const {
+std::vector<Location> AStar::BreadthFirstSearch(Location start, Location goal, SquareType searchForType, int count) const {
 	std::map<Location, Location> cameFrom;
-	std::map<Location, Location> foundLocs;
+	std::vector<Location> foundLocs;
 	if (goal == start) {
 		_state->bug << "Destination already reached (goal equals start)" << start << std::endl;
-		return cameFrom;
+		return {};
 	}
 
 	// No check for water here to allow to search within a radius without minding water.
 	//if (_state->grid[goal.row][goal.col].isWater) {
 	//	_state->bug << "Destination is not a valid target (water tile) " << goal << std::endl;
-	//	return cameFrom;
+	//	return {};
 	//}
 
 	std::queue<Location> frontier;
@@ -176,7 +176,7 @@ std::map<Location, Location> AStar::BreadthFirstSearch(Location start, Location 
 					{
 						// Keep track of found locations in a dedicated array.
 						found++;
-						foundLocs[next] = current;
+						foundLocs.push_back(next);
 
 						// Stop BFS when needed.
 						if (found == count) {
@@ -197,5 +197,9 @@ std::map<Location, Location> AStar::BreadthFirstSearch(Location start, Location 
 		return foundLocs;
 	}
 
-	return cameFrom;
+	std::vector<Location> locations;
+	std::transform(std::begin(cameFrom), std::end(cameFrom),
+		std::back_inserter(locations),
+		[](auto const& pair) { return pair.first; });
+	return locations;
 }
