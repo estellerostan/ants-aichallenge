@@ -4,7 +4,6 @@
 
 #pragma once
 #include <vector>
-#include <ostream> // used for file debug
 
 #include "Ant.h"
 #include "State.h"
