@@ -5,9 +5,11 @@
 
 AStar::AStar() = default;
 
-std::set<Location> AStar::Neighbors(Location loc, bool isStart, Location goal) const
+std::vector<Location> AStar::Neighbors(Location loc, bool isStart, Location goal) const
 {
-	std::set<Location> results;
+	// Second is direction.
+	auto cmp = [](std::pair<Location, int> a, std::pair<Location, int> b) { return a.second < b.second; };
+	std::set<std::pair<Location, int>, decltype(cmp)> results(cmp);
 
 	for (int d = 0; d < TDIRECTIONS; d++)
 	{
@@ -21,15 +23,21 @@ std::set<Location> AStar::Neighbors(Location loc, bool isStart, Location goal) c
 		// Allows to search within a radius without minding water, useful for BFS.
 		if (goal != Location{ -1, -1 } && next == goal && _state->grid[goal.row][goal.col].isWater)
 		{
-			results.insert(next);
+			results.insert(std::make_pair(next, d));
 		}
 
 		if (!_state->grid[next.row][next.col].isWater) {
-			results.insert(next);
+			results.insert(std::make_pair(next, d));
 		}
 	}
 
-	return results;
+	// Used to keep the same order as TDIRECTIONS,
+	// so that the sort order is right.
+	std::vector<Location> locations;
+	std::transform(std::begin(results), std::end(results),
+	               std::back_inserter(locations),
+	               [](auto const& pair) { return pair.first; });
+	return locations;
 }
 
 void AStar::AStarSearch(Location start, Location goal, std::map<Location, Location>& cameFrom, std::map<Location, double>& costSoFar) const
@@ -64,7 +72,7 @@ void AStar::AStarSearch(Location start, Location goal, std::map<Location, Locati
 			break;
 		}
 
-		std::set<Location> neighbors;
+		std::vector<Location> neighbors;
 		if (current == start)
 		{
 			neighbors = Neighbors(current, true);

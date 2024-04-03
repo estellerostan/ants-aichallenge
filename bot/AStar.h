@@ -8,7 +8,6 @@
 
 #pragma once
 #include <map>
-#include <set>
 
 #include "State.h"
 
@@ -37,7 +36,7 @@ class AStar
 		}
 	};
 
-	std::set<Location> Neighbors(Location loc, bool isStart, Location goal = Location{ -1, -1 }) const;
+	std::vector<Location> Neighbors(Location loc, bool isStart, Location goal = Location{ -1, -1 }) const;
 
 public:
 	AStar();
