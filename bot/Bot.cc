@@ -336,9 +336,11 @@ void Bot::DefendHills()
 		{
 			// Look for a single own ant to defend the hill: trade.
 			const Location myAnts{ _state.GetLocation(myHill, 2, 20) };
-			const auto antLoc = _aStar.BreadthFirstSearch(enemyAnt, myAnts, MYANT);
+			// Five ants, not just one, to fix the problem of always trying the same ant move.
+			const auto antLoc = _aStar.BreadthFirstSearch(enemyAnt, myAnts, MYANT, 5);
 			for (Location myAnt: antLoc)
 			{
+				// TODO: Check for hasMove inside BFS to avoid trying to always make the same ant move...
 				// If ant has no task.
 				const bool hasMove = ContainsValue(_orders, myAnt);
 				if (!hasMove)
