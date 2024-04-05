@@ -38,7 +38,10 @@ void Bot::MakeMoves()
     AttackAnts();
 	// TODO: fix perf problems for large maps (of 6p with time taken > 100ms)
 	// explore unseen areas
-	ExploreMap();
+	//ExploreMap();
+
+	//TEST EXPLORE SURROUNDINGS
+	ExploreSurroundings(_state.viewRadius / 2.0f);
 	UnblockHills();
 
 	// TODO: Remove this test.
@@ -185,6 +188,41 @@ void Bot::UnblockHills()
             }
         }
     }
+}
+
+//EXPLORATION
+void Bot::ExploreSurroundings(float exploRange) {
+	for (Location ant : _state.myAnts)
+	{
+		//No path assigned
+		if (!_orders.count(ant))
+		{
+				vector<Location> unseenClosestLocations;
+				for (Location unseenLocation : _unseenTiles)
+				{
+					//If the location is water we can't go
+					if (_state.grid[unseenLocation.row][unseenLocation.col].isWater)
+					{
+						remove(_unseenTiles.begin(), _unseenTiles.end(), unseenLocation);
+					}
+					else
+					{
+						float distance = _state.ManhattanDistance(ant, unseenLocation);
+						if (distance <= exploRange)
+							unseenClosestLocations.push_back(unseenLocation);
+					}
+				}
+				//Lower distance at the front of the vector
+				sort(unseenClosestLocations.begin(), unseenClosestLocations.end(), [ant, this](Location l1, Location l2) { return _state.ManhattanDistance(ant,l1) < _state.ManhattanDistance(ant, l2); });
+
+				for (Location location : unseenClosestLocations) {
+					if (MakeMove(ant, location, "explore")) {
+						break;
+					}
+				}
+					
+		}
+	}
 }
 
 void Bot::ExploreMap()
