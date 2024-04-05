@@ -5,9 +5,11 @@
 
 AStar::AStar() = default;
 
-std::set<Location> AStar::Neighbors(Location loc, bool isStart, Location goal) const
+std::vector<Location> AStar::Neighbors(Location loc, bool isStart, Location goal) const
 {
-	std::set<Location> results;
+	// Second is direction.
+	auto cmp = [](std::pair<Location, int> a, std::pair<Location, int> b) { return a.second < b.second; };
+	std::set<std::pair<Location, int>, decltype(cmp)> results(cmp);
 
 	for (int d = 0; d < TDIRECTIONS; d++)
 	{
@@ -21,15 +23,21 @@ std::set<Location> AStar::Neighbors(Location loc, bool isStart, Location goal) c
 		// Allows to search within a radius without minding water, useful for BFS.
 		if (goal != Location{ -1, -1 } && next == goal && _state->grid[goal.row][goal.col].isWater)
 		{
-			results.insert(next);
+			results.insert(std::make_pair(next, d));
 		}
 
 		if (!_state->grid[next.row][next.col].isWater) {
-			results.insert(next);
+			results.insert(std::make_pair(next, d));
 		}
 	}
 
-	return results;
+	// Used to keep the same order as TDIRECTIONS,
+	// so that the sort order is right.
+	std::vector<Location> locations;
+	std::transform(std::begin(results), std::end(results),
+		std::back_inserter(locations),
+		[](auto const& pair) { return pair.first; });
+	return locations;
 }
 
 void AStar::AStarSearch(Location start, Location goal, std::map<Location, Location>& cameFrom, std::map<Location, double>& costSoFar) const
@@ -64,7 +72,7 @@ void AStar::AStarSearch(Location start, Location goal, std::map<Location, Locati
 			break;
 		}
 
-		std::set<Location> neighbors;
+		std::vector<Location> neighbors;
 		if (current == start)
 		{
 			neighbors = Neighbors(current, true);
@@ -122,18 +130,18 @@ std::vector<Location> AStar::ReconstructPath(Location start, Location goal, std:
 	return path;
 }
 
-std::map<Location, Location> AStar::BreadthFirstSearch(Location start, Location goal, SquareType searchForType, int count) const {
+std::vector<Location> AStar::BreadthFirstSearch(Location start, Location goal, SquareType searchForType, int count) const {
 	std::map<Location, Location> cameFrom;
-	std::map<Location, Location> foundLocs;
+	std::vector<Location> foundLocs;
 	if (goal == start) {
 		_state->bug << "Destination already reached (goal equals start)" << start << std::endl;
-		return cameFrom;
+		return {};
 	}
 
 	// No check for water here to allow to search within a radius without minding water.
 	//if (_state->grid[goal.row][goal.col].isWater) {
 	//	_state->bug << "Destination is not a valid target (water tile) " << goal << std::endl;
-	//	return cameFrom;
+	//	return {};
 	//}
 
 	std::queue<Location> frontier;
@@ -168,7 +176,7 @@ std::map<Location, Location> AStar::BreadthFirstSearch(Location start, Location 
 					{
 						// Keep track of found locations in a dedicated array.
 						found++;
-						foundLocs[next] = current;
+						foundLocs.push_back(next);
 
 						// Stop BFS when needed.
 						if (found == count) {
@@ -189,5 +197,9 @@ std::map<Location, Location> AStar::BreadthFirstSearch(Location start, Location 
 		return foundLocs;
 	}
 
-	return cameFrom;
+	std::vector<Location> locations;
+	std::transform(std::begin(cameFrom), std::end(cameFrom),
+		std::back_inserter(locations),
+		[](auto const& pair) { return pair.first; });
+	return locations;
 }

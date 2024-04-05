@@ -1,5 +1,6 @@
 #ifndef LOCATION_H_
 #define LOCATION_H_
+#include <ostream>
 
 /*
 	struct for representing locations in the grid.

@@ -33,6 +33,9 @@ void Bot::MakeMoves()
 	_state.bug << _state << endl;
 
     Setup();
+	// TODO: priority?
+	// for now it is at the top because we only have one hill on the map chosen for the contest so we don't want to loose it
+	DefendHills();
     GatherFood();
     AttackHills();
     AttackAnts();
@@ -61,12 +64,12 @@ void Bot::MakeMoves()
 	const auto resBFS = _aStar.BreadthFirstSearch(startBFS, goalBFS);
 	//_state.bug << "BFS: " << resBFS.size() << endl;
 	std::vector<Location> foodLocs;
-	for (std::pair<Location, Location> from : resBFS)
+	for (Location from : resBFS)
 	{
-		if (_state.grid[from.first.row][from.first.col].isFood)
+		if (_state.grid[from.row][from.col].isFood)
 		{
-			foodLocs.push_back(from.first);
-			//_state.bug << from.first << endl;
+			foodLocs.push_back(from);
+			//_state.bug << from << endl;
 		}
 	}
 	//_state.bug << "food amount:" << foodLocs.size() << endl;
@@ -75,9 +78,9 @@ void Bot::MakeMoves()
 	const Location startBFS2{ 9, 16 }, goalBFS2{ 15, 16 };
 	const auto resBFS2 = _aStar.BreadthFirstSearch(startBFS2, goalBFS2, ENEMYANT, 5);
 	//_state.bug << "BFS2: " << resBFS2.size() << endl;
-	for (std::pair<Location, Location> from : resBFS2)
+	for (Location from : resBFS2)
 	{
-		// _state.bug << "enemies near " << from.first << endl;
+		// _state.bug << "enemies near " << from << endl;
 	}
 
 	_state.bug << "time taken: " << _state.timer.GetTime() << "ms" << endl << endl;
@@ -132,9 +135,9 @@ void Bot::GatherFood()
 		const Location start = foodLoc, goal{ _state.GetLocation(foodLoc, 2, 5) };
 		const auto antLoc = _aStar.BreadthFirstSearch(start, goal, MYANT);
 
-		for (std::pair<Location, Location> from : antLoc)
+		for (const Location from : antLoc)
 		{
-			const Location myAnt = from.first, enemiesRadius{ _state.GetLocation(myAnt, 2, 3) }, enemyRadius{ _state.GetLocation(foodLoc, 2, 2) };
+			const Location myAnt = from, enemiesRadius{ _state.GetLocation(myAnt, 2, 3) }, enemyRadius{ _state.GetLocation(foodLoc, 2, 2) };
 			// Prioritize own food over enemy food.
 			const auto isEnemyNearFood = _aStar.BreadthFirstSearch(foodLoc, enemyRadius, ENEMYANT, 5).size() == 1;
 			// Don't prioritize if enemies nearby.
@@ -238,10 +241,8 @@ void Bot::AttackHills()
 		const Location start = hillLoc, goal{ _state.GetLocation(hillLoc, 2, 20) };
 		const auto antLoc = _aStar.BreadthFirstSearch(start, goal, MYANT, 5);
 
-		for (std::pair<Location, Location> from : antLoc)
+		for (const Location myAnt : antLoc)
 		{
-			const Location myAnt = from.first;
-
 			// Don't prioritize if enemies nearby (5 for now) and if there is more than one ant attacking the hill
 			// For example: one lonesome ant can try to attack a hill (worst case: trade, huge win possible),
 			//			    but a group should focus on attacking enemies first to minimize the loss of own ants (they all focus on the same task).
@@ -322,6 +323,39 @@ void Bot::AttackAnts()
     for (const Ant* myAnt : _miniMax.myAnts) {
         if (myAnt->bestDest != Location(-1, -1)) MakeMove(myAnt->loc, myAnt->bestDest, "attack ants"); // else?
     }
+}
+
+void Bot::DefendHills()
+{
+	for (Location myHill : _state.myHills)
+	{
+		// Look for enemies close to hill.
+		const Location start = myHill, goal{ _state.GetLocation(myHill, 2, 10) };
+		const auto enemiesLoc = _aStar.BreadthFirstSearch(start, goal, ENEMYANT, 5);
+		for (Location enemyAnt : enemiesLoc)
+		{
+			// Look for a single own ant to defend the hill: trade.
+			const Location myAnts{ _state.GetLocation(myHill, 2, 20) };
+			// Five ants, not just one, to fix the problem of always trying the same ant move.
+			const auto antLoc = _aStar.BreadthFirstSearch(enemyAnt, myAnts, MYANT, 5);
+			for (Location myAnt: antLoc)
+			{
+				// TODO: Check for hasMove inside BFS to avoid trying to always make the same ant move...
+				// If ant has no task.
+				const bool hasMove = ContainsValue(_orders, myAnt);
+				if (!hasMove)
+				{
+					std::map<Location, Location> cameFrom;
+					std::map<Location, double> costSoFar;
+					_aStar.AStarSearch(myAnt, enemyAnt, cameFrom, costSoFar);
+					const std::vector<Location> res = _aStar.ReconstructPath(myAnt, enemyAnt, cameFrom);
+					if (!res.empty()) {
+						MakeMove(myAnt, res.front(), "defend hill");
+					}
+				}
+			}
+		}
+	}
 }
 
 bool Bot::ContainsValue(std::map<Location, Location>& r_locMap, const Location& r_antLoc)
