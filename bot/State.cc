@@ -1,5 +1,7 @@
 #include "State.h"
 
+#include <map>
+
 using namespace std;
 
 //constructor
@@ -151,9 +153,39 @@ std::vector<int> State::GetDirections(Location l1, Location l2) {
     return directions;
 }
 
-bool State::IsUnoccupied(const Location &r_loc) const
+/**
+ * \brief Check if the NEW location (not current) an ant wants to go to is available or not.
+ *        This allows ants to follow each other, depending on the (insertion) order their next moves are added in Bot::_orders.
+ * \param r_orders The map keeping track of every NEW locations, updated each time an ant commits to a move.
+ * \param r_newLoc The new location we want to check for availability
+ * \return 
+ */
+bool State::IsUnoccupied(map<Location, Location>& r_orders, const Location& r_newLoc) const
 {
-    return !grid[r_loc.row][r_loc.col].isWater && !grid[r_loc.row][r_loc.col].isMyAnt;
+    if (grid[r_newLoc.row][r_newLoc.col].isWater)
+    {
+        return false;
+    }
+
+    bool canMove = false;
+    Location location{ -1, -1 };
+    for (auto it = r_orders.begin(); it != r_orders.end(); ++it)
+    {
+        if (it->second == r_newLoc)
+        {
+            canMove = true;
+            location = it->first;
+            break;
+        }
+    }
+
+    // Check first if the location we want to go to will be available or not (current ant didn't move).
+	// This check allows to follow another ant if newLoc is set.
+    if ((!canMove && grid[r_newLoc.row][r_newLoc.col].isMyAnt) || (canMove && location == Location{ -1, -1 }) || r_orders.count(r_newLoc) != 0)
+    {
+        return false;
+    }
+    return true;
 }
 
 bool State::FakeIsUnoccupied(const Location& r_loc) const

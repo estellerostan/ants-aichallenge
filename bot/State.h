@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include <cstdlib>
 #include <cmath>
+#include <map>
 #include <string>
 #include <vector>
 #include <queue>
@@ -66,7 +67,7 @@ struct State
     Location GetLocation(const Location &r_startLoc, int direction);
     Location GetLocation(const Location& r_startLoc, int direction, int length);
     std::vector<int> GetDirections(Location l1, Location l2);
-    bool IsUnoccupied(const Location &r_loc) const;
+    bool IsUnoccupied(std::map<Location, Location>& r_orders, const Location& r_newLoc) const;
     bool FakeIsUnoccupied(const Location &r_loc) const;
 
     void UpdateVisionInformation();
