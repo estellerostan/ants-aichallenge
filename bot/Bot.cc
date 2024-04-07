@@ -39,6 +39,7 @@ void Bot::MakeMoves()
     GatherFood();
     AttackHills();
     AttackAnts();
+	TrackEnemies();
 	// TODO: fix perf problems for large maps (of 6p with time taken > 100ms)
 	// explore unseen areas
 	ExploreMap();
@@ -75,13 +76,17 @@ void Bot::MakeMoves()
 	//_state.bug << "food amount:" << foodLocs.size() << endl;
 
 	// TODO: Remove this test.
-	const Location startBFS2{ 9, 16 }, goalBFS2{ 15, 16 };
-	const auto resBFS2 = _aStar.BreadthFirstSearch(startBFS2, goalBFS2, ENEMYANT, 5);
-	//_state.bug << "BFS2: " << resBFS2.size() << endl;
-	for (Location from : resBFS2)
-	{
-		// _state.bug << "enemies near " << from << endl;
-	}
+	//for (int i = 0; i < 1000; ++i)
+	//{
+		const Location startBFS2{ 9, 16 }, goalBFS2{ 15, 16 };
+		const auto resBFS2 = _aStar.BreadthFirstSearch(startBFS2, goalBFS2, ENEMYANT, 5);
+		//_state.bug << "BFS2: " << resBFS2.size() << endl;
+		for (Location from : resBFS2)
+		{
+			// _state.bug << "enemies near " << from << endl;
+		}
+	//}
+	
 
 	_state.bug << "time taken: " << _state.timer.GetTime() << "ms" << endl << endl;
 }
@@ -316,7 +321,6 @@ void Bot::AttackAnts()
         const Location enemyLoc = std::get<2>(res);
         _miniMax.myAnts.push_back(new Ant(antLoc));
         _miniMax.enemyAnts.push_back(new Ant(enemyLoc));
-        //_state.bug << antLoc << " vs " << enemyLoc << endl;
     }
 
     _miniMax.Max(0);
@@ -351,6 +355,42 @@ void Bot::DefendHills()
 					const std::vector<Location> res = _aStar.ReconstructPath(myAnt, enemyAnt, cameFrom);
 					if (!res.empty()) {
 						MakeMove(myAnt, res.front(), "defend hill");
+					}
+				}
+			}
+		}
+	}
+}
+
+/**
+ * \brief Ants without a move that are close to attacking ants will try to join the fight next turn if they are not too far.
+ */
+void Bot::TrackEnemies()
+{
+	for (auto group : _attackGroups)
+	{
+		const Location myAnt = std::get<1>(group);
+		const Location enemyAnt = std::get<2>(group);
+		// Attack happened for real (sometimes minimax doesn't find a winning destination for a fight so the ant doesn't attack).
+		const bool isAttacking = ContainsValue(_orders, myAnt);
+		if (isAttacking) 
+		{
+			// Look for friends close to ant.
+			const Location myAnts{ _state.GetLocation(myAnt, 2, 3) };
+			const auto antsLoc = _aStar.BreadthFirstSearch(myAnt, myAnts, MYANT, 5);
+			for (auto loc : antsLoc)
+			{
+				// If ant has no task.
+				const bool hasMove = ContainsValue(_orders, loc);
+				if (!hasMove)
+				{
+					std::map<Location, Location> cameFrom;
+					std::map<Location, double> costSoFar;
+					_aStar.AStarSearch(loc, enemyAnt, cameFrom, costSoFar);
+					const std::vector<Location> res = _aStar.ReconstructPath(loc, enemyAnt, cameFrom);
+					if (!res.empty()) 
+					{
+						MakeMove(loc, res.front(), "track enemy");
 					}
 				}
 			}

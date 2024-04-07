@@ -39,6 +39,7 @@ private:
 	void CreateAttackGroups();
 	void AttackAnts();
 	void DefendHills();
+	void TrackEnemies();
 	bool MakeMove(const Location& r_loc, const Location& r_dest, const std::string& r_from = {}); // makes a move following a destination for a single ant
 	bool MakeMove(const Location& r_loc, int direction, const std::string& r_from = {}); // makes a move to a direction for a single ant
 	void EndTurn();     //indicates to the engine that it has made its moves
