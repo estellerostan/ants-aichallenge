@@ -49,7 +49,7 @@ void Bot::MakeMoves()
 	const Location start{ 0, 28 }, goal{ 27, 10 };
 	std::map<Location, Location> cameFrom;
 	std::map<Location, double> costSoFar;
-	_aStar.AStarSearch(start, goal, cameFrom, costSoFar);
+	_aStar.AStarSearch(start, goal, cameFrom, costSoFar, _orders);
 	const std::vector<Location> res = _aStar.ReconstructPath(start, goal, cameFrom);
 	//_state.bug << "AStar: " << res.size() << endl;
 	if (!res.empty()) {
@@ -165,7 +165,7 @@ void Bot::GatherFood()
 			{
 				std::map<Location, Location> cameFrom;
 				std::map<Location, double> costSoFar;
-				_aStar.AStarSearch(myAnt, foodLoc, cameFrom, costSoFar);
+				_aStar.AStarSearch(myAnt, foodLoc, cameFrom, costSoFar, _orders);
 				const std::vector<Location> res = _aStar.ReconstructPath(myAnt, foodLoc, cameFrom);
 				if (!res.empty()) {
 					MakeMove(myAnt, res.front(), info);
@@ -265,7 +265,7 @@ void Bot::AttackHills()
 			{
 				std::map<Location, Location> cameFrom;
 				std::map<Location, double> costSoFar;
-				_aStar.AStarSearch(myAnt, hillLoc, cameFrom, costSoFar);
+				_aStar.AStarSearch(myAnt, hillLoc, cameFrom, costSoFar, _orders);
 				const std::vector<Location> res = _aStar.ReconstructPath(myAnt, hillLoc, cameFrom);
 				if (!res.empty()) {
 					MakeMove(myAnt, res.front(), "attack hills");
@@ -351,7 +351,7 @@ void Bot::DefendHills()
 				{
 					std::map<Location, Location> cameFrom;
 					std::map<Location, double> costSoFar;
-					_aStar.AStarSearch(myAnt, enemyAnt, cameFrom, costSoFar);
+					_aStar.AStarSearch(myAnt, enemyAnt, cameFrom, costSoFar, _orders);
 					const std::vector<Location> res = _aStar.ReconstructPath(myAnt, enemyAnt, cameFrom);
 					if (!res.empty()) {
 						MakeMove(myAnt, res.front(), "defend hill");
@@ -386,7 +386,7 @@ void Bot::TrackEnemies()
 				{
 					std::map<Location, Location> cameFrom;
 					std::map<Location, double> costSoFar;
-					_aStar.AStarSearch(loc, enemyAnt, cameFrom, costSoFar);
+					_aStar.AStarSearch(loc, enemyAnt, cameFrom, costSoFar, _orders);
 					const std::vector<Location> res = _aStar.ReconstructPath(loc, enemyAnt, cameFrom);
 					if (!res.empty()) 
 					{
@@ -435,7 +435,7 @@ bool Bot::MakeMove(const Location& r_loc, const int direction, const string& r_f
 {
 	const Location newLoc = _state.GetLocation(r_loc, direction);
 
-	const bool canMakeMove = _state.IsUnoccupied(newLoc) && _orders.count(newLoc) == 0;
+	const bool canMakeMove = _state.IsUnoccupied(_orders, newLoc);
 	if (!canMakeMove)
 	{
 		return false;

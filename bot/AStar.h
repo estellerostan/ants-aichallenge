@@ -36,7 +36,7 @@ class AStar
 		}
 	};
 
-	std::vector<Location> Neighbors(Location loc, bool isStart, Location goal = Location{ -1, -1 }) const;
+	std::vector<Location> Neighbors(Location loc, bool isStart, Location goal = Location{ -1, -1 }, std::map<Location, Location> orders = {{ Location{ -1, -1 },  Location{ -1, -1 }}}) const;
 
 public:
 	AStar();
@@ -48,8 +48,9 @@ public:
 	 * \param goal Goal location
 	 * \param cameFrom Store the location of where we came for AStar::ReconstructPath
 	 * \param costSoFar
+	 * \param orders Needs Bot::_orders to check for next moves (new) as well as current moves (classic)
 	 */
-	void AStarSearch(Location start, Location goal, std::map<Location, Location>& cameFrom, std::map<Location, double>& costSoFar) const;
+	void AStarSearch(Location start, Location goal, std::map<Location, Location>& cameFrom, std::map<Location, double>& costSoFar, std::map<Location, Location>& orders) const;
 
 	/**
 	 * \brief Returns the path to go from start to goal

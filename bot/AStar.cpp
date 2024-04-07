@@ -5,7 +5,7 @@
 
 AStar::AStar() = default;
 
-std::vector<Location> AStar::Neighbors(Location loc, bool isStart, Location goal) const
+std::vector<Location> AStar::Neighbors(Location loc, bool isStart, Location goal, std::map<Location, Location> orders) const
 {
 	// Second is direction.
 	auto cmp = [](std::pair<Location, int> a, std::pair<Location, int> b) { return a.second < b.second; };
@@ -14,10 +14,14 @@ std::vector<Location> AStar::Neighbors(Location loc, bool isStart, Location goal
 	for (int d = 0; d < TDIRECTIONS; d++)
 	{
 		Location next = _state->GetLocation(loc, d);
-		if (isStart && !_state->IsUnoccupied(next)) {
-			// Don't add this neighbor to be able to do the first move.
-			// Tiles farther than start are okay because own ants will probably move.
-			continue;
+
+		if (isStart)
+		{
+			if (!_state->IsUnoccupied(orders, next)) {
+				// Don't add this neighbor to be able to do the first move.
+				// Tiles farther than start are okay because own ants will probably move.
+				continue;
+			}
 		}
 
 		// Allows to search within a radius without minding water, useful for BFS.
@@ -40,7 +44,8 @@ std::vector<Location> AStar::Neighbors(Location loc, bool isStart, Location goal
 	return locations;
 }
 
-void AStar::AStarSearch(Location start, Location goal, std::map<Location, Location>& cameFrom, std::map<Location, double>& costSoFar) const
+void AStar::AStarSearch(Location start, Location goal, std::map<Location, Location>& cameFrom, std::map<Location, double>& costSoFar,
+	std::map<Location, Location>& orders) const
 {
 	if (goal == start) {
 		_state->bug << "Destination already reached (goal equals start)" << start << std::endl;
@@ -75,7 +80,7 @@ void AStar::AStarSearch(Location start, Location goal, std::map<Location, Locati
 		std::vector<Location> neighbors;
 		if (current == start)
 		{
-			neighbors = Neighbors(current, true);
+			neighbors = Neighbors(current, true, Location{ -1, -1 }, orders);
 		}
 		else
 		{
