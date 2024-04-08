@@ -231,6 +231,7 @@ void Bot::AttackHills()
 	// Do not attack hills at the start of the game (or when too weak), even if we can see/ win another hill.
 	if (_state.myAnts.size() < 10) return;
 
+	// Keep track of hills in Bot because if we lose vision of the hill, we don't want to forget that it's there (how State::enemyHills works).
 	for (auto enemyHill : _state.enemyHills)
 	{
 		if (_enemyHills.count(enemyHill) == 0)
@@ -434,6 +435,14 @@ bool Bot::MakeMove(const Location& r_loc, const Location& r_dest, const string& 
 bool Bot::MakeMove(const Location& r_loc, const int direction, const string& r_from)
 {
 	const Location newLoc = _state.GetLocation(r_loc, direction);
+
+	// This check is allowed here because the time complexity is O(log N) and N is max 5 in our case,
+	// so it is always small and can only get smaller as the game progress.
+	const bool isHillRazed = _enemyHills.find(r_loc) != _enemyHills.end();
+	if (isHillRazed)
+	{
+		_enemyHills.erase(r_loc);
+	}
 
 	const bool canMakeMove = _state.IsUnoccupied(_orders, newLoc);
 	if (!canMakeMove)
