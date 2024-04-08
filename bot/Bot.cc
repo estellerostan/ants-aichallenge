@@ -242,7 +242,6 @@ void Bot::RandomMove()
 				const int direction = rand() % 4;
 				if (MakeMove(antLoc, direction, "random move"))
 				{
-					_state.bug << "rand " << d << "try " << tryDir << endl;
 					break;
 				}
 				tryCount++;
