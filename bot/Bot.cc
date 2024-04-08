@@ -40,7 +40,6 @@ void Bot::MakeMoves()
     AttackHills();
     AttackAnts();
 	TrackEnemies();
-	// TODO: fix perf problems for large maps (of 6p with time taken > 100ms)
 	// explore unseen areas
 	ExploreMap();
 	RandomMove();
@@ -98,29 +97,6 @@ void Bot::Setup()
     _targets.clear();
     _miniMax.myAnts.clear();
     _miniMax.enemyAnts.clear();
-
-	// add all locations to unseen tiles set, run once
-	// necessary for Bot::ExploreMap
-	if (_unseenTiles.empty()) {
-		for (int row = 0; row < _state.rows; row++) {
-			for (int col = 0; col < _state.cols; col++) {
-				_unseenTiles.insert(Location(row, col));
-			}
-		}
-	}
-	// remove any tiles that can be seen, run each turn
-	for (auto iter = _unseenTiles.begin(); iter != _unseenTiles.end();)
-	{
-		if (_state.grid[iter->row][iter->col].isVisible)
-		{
-			iter = _unseenTiles.erase(iter);
-			//_state.bug << "seen: " << iter->row << " " << iter->col << "\n";
-		}
-		else
-		{
-			++iter;
-		}
-	}
 
 	// prevent stepping on own hill
 	// necessary for Bot::UnblockHills
@@ -198,30 +174,41 @@ void Bot::UnblockHills()
 
 void Bot::ExploreMap()
 {
-    for (Location antLoc : _state.myAnts)
-    {
-        const bool hasMove = ContainsValue(_orders, antLoc);
-        if (!hasMove)
-        {
-            std::vector<std::tuple<int, Location>> unseenDist;
-            for (Location unseenLoc : _unseenTiles)
-            {
-                auto dist = _state.EuclideanDistance(antLoc, unseenLoc);
-                unseenDist.emplace_back(dist, unseenLoc);
-                // avoid timeout, even if the search is not complete
-                // better than being removed from the game
+	for (Location antLoc : _state.myAnts)
+	{
+		const bool hasMove = ContainsValue(_orders, antLoc);
+		if (!hasMove)
+		{
+			// Look for unexplored locations that are relatively close.
+			// Just by checking !Square::isVisible, it doesn't mean we didn't visit a location before but that, right now, it is out of sight.
+			const Location goal{ _state.GetLocation(antLoc, 1, 20) };
+			const auto resBFS = _aStar.BreadthFirstSearch(antLoc, goal, INVISIBLE, 3);
+			std::vector<std::tuple<int, Location>> unseenDist;
+			for (Location from : resBFS)
+			{
+				auto dist = _state.ManhattanDistance(antLoc, from);
+				unseenDist.emplace_back(dist, from);
+				// avoid timeout, even if the search is not complete
+				// better than being removed from the game
 				if (_state.TimeRemaining() < 200) {
 					_state.bug << "explore timeout" << endl;
 					break;
 				}
-            }
-            std::sort(unseenDist.begin(), unseenDist.end());
-            for (auto res : unseenDist) 
-            {
-                Location unseenLoc = std::get<1>(res);
-                if (MakeMove(antLoc, unseenLoc, "explore")) {
-                    break;
-                }
+			}
+
+			// Find the closed path we can go to, stop when we managed to move in that direction.
+			std::sort(unseenDist.begin(), unseenDist.end());
+			for (auto res : unseenDist)
+			{
+				const Location unseenLoc = std::get<1>(res);
+				std::map<Location, Location> cameFrom;
+				std::map<Location, double> costSoFar;
+				_aStar.AStarSearch(antLoc, unseenLoc, cameFrom, costSoFar, _orders);
+				const std::vector<Location> nextMove = _aStar.ReconstructPath(antLoc, unseenLoc, cameFrom);
+				if (!nextMove.empty()) {
+					MakeMove(antLoc, nextMove.front(), "explore");
+					break;
+				}
 			}
 		}
 	}
@@ -245,9 +232,9 @@ void Bot::RandomMove()
 					break;
 				}
 				tryCount++;
-            }
-        }
-    }
+			}
+		}
+	}
 }
 
 void Bot::AttackHills()

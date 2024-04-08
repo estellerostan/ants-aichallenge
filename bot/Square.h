@@ -37,7 +37,8 @@ enum SquareType
     HILL,
     FOOD,
     MYANT,
-    ENEMYANT
+    ENEMYANT,
+    INVISIBLE
 };
 
 #endif //SQUARE_H_

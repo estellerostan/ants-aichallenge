@@ -177,7 +177,8 @@ std::vector<Location> AStar::BreadthFirstSearch(Location start, Location goal, S
 					if ((searchForType == MYANT && _state->grid[next.row][next.col].isMyAnt)
 						|| (searchForType == HILL && _state->grid[next.row][next.col].isHill)
 						|| (searchForType == FOOD && _state->grid[next.row][next.col].isFood)
-						|| (searchForType == ENEMYANT && _state->grid[next.row][next.col].isEnemyAnt))
+						|| (searchForType == ENEMYANT && _state->grid[next.row][next.col].isEnemyAnt)
+						|| (searchForType == INVISIBLE && !_state->grid[next.row][next.col].isVisible))
 					{
 						// Keep track of found locations in a dedicated array.
 						found++;
