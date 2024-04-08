@@ -35,6 +35,7 @@ private:
 	void GatherFood();
 	void UnblockHills();
 	void ExploreMap();
+	void RandomMove();
 	void AttackHills();
 	void CreateAttackGroups();
 	void AttackAnts();

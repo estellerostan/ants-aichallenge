@@ -43,6 +43,7 @@ void Bot::MakeMoves()
 	// TODO: fix perf problems for large maps (of 6p with time taken > 100ms)
 	// explore unseen areas
 	ExploreMap();
+	RandomMove();
 	UnblockHills();
 
 	// TODO: Remove this test.
@@ -221,6 +222,30 @@ void Bot::ExploreMap()
                 if (MakeMove(antLoc, unseenLoc, "explore")) {
                     break;
                 }
+			}
+		}
+	}
+}
+
+/**
+ * \brief To use if there is nothing else to do, even if the timeout threshold is triggered because this code should be fast enough.
+ */
+void Bot::RandomMove()
+{
+	for (Location antLoc : _state.myAnts)
+	{
+		const bool hasMove = ContainsValue(_orders, antLoc);
+		if (!hasMove)
+		{
+			int tryCount = 0;
+			while (tryCount < 4) {
+				const int direction = rand() % 4;
+				if (MakeMove(antLoc, direction, "random move"))
+				{
+					_state.bug << "rand " << d << "try " << tryDir << endl;
+					break;
+				}
+				tryCount++;
             }
         }
     }
