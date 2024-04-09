@@ -21,6 +21,7 @@ struct Bot
 private:
 	std::map<Location, Location> _orders;
 	std::map<Location, Location> _targets;
+	std::map<Location, int> _unseenTiles;
 	std::set<Location> _enemyHills;
 	std::vector<std::tuple<double, Location, Location>> _attackGroups;
 

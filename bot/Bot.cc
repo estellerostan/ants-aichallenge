@@ -106,6 +106,37 @@ void Bot::Setup()
 	}
 
 	_attackGroups.clear();
+
+	// Add all locations to unseen tiles set.
+	// Necessary for Bot::ExploreMap, run once per game.
+	if (_unseenTiles.empty()) {
+		for (int row = 0; row < _state.rows; row++) {
+			for (int col = 0; col < _state.cols; col++) {
+				auto from = Location(row, col);
+				_unseenTiles[from] = 0;
+			}
+		}
+	}
+
+	// Remove any tiles that can be seen, run each turn.
+	for (auto iter = _unseenTiles.begin(); iter != _unseenTiles.end();)
+	{
+		if (_state.grid[iter->first.row][iter->first.col].isVisible)
+		{
+			iter = _unseenTiles.erase(iter);
+			//_state.bug << "seen: " << iter->row << " " << iter->col << "\n";
+		}
+		else
+		{
+			++iter;
+		}
+	}
+
+	// Increase the "last visited" counter.
+	for (auto& res : _unseenTiles)
+	{
+		res.second++;
+}
 }
 
 void Bot::GatherFood()
@@ -172,6 +203,9 @@ void Bot::UnblockHills()
     }
 }
 
+/**
+ * \brief Explore the map using a "last visited" counter, to always pick the oldest seen location.
+ */
 void Bot::ExploreMap()
 {
 	for (Location antLoc : _state.myAnts)
@@ -180,8 +214,8 @@ void Bot::ExploreMap()
 		if (!hasMove)
 		{
 			// Look for unexplored locations that are relatively close.
-			// Just by checking !Square::isVisible, it doesn't mean we didn't visit a location before but that, right now, it is out of sight.
-			const Location goal{ _state.GetLocation(antLoc, 1, 20) };
+			// 1) By checking !Square::isVisible, add location to the unseenDist array if it is out of sight.
+			const Location goal{ _state.GetLocation(antLoc, 1, 15) };
 			const auto resBFS = _aStar.BreadthFirstSearch(antLoc, goal, INVISIBLE, 3);
 			std::vector<std::tuple<int, Location>> unseenDist;
 			for (Location from : resBFS)
@@ -196,18 +230,25 @@ void Bot::ExploreMap()
 				}
 			}
 
-			// Find the closed path we can go to, stop when we managed to move in that direction.
-			std::sort(unseenDist.begin(), unseenDist.end());
+			// 2) Find the greatest "last visited" path we can go to, stop when we managed to move in that direction.
+			std::sort(unseenDist.begin(), unseenDist.end(), greater<>());
 			for (auto res : unseenDist)
 			{
-				const Location unseenLoc = std::get<1>(res);
-				std::map<Location, Location> cameFrom;
-				std::map<Location, double> costSoFar;
-				_aStar.AStarSearch(antLoc, unseenLoc, cameFrom, costSoFar, _orders);
-				const std::vector<Location> nextMove = _aStar.ReconstructPath(antLoc, unseenLoc, cameFrom);
-				if (!nextMove.empty()) {
-					MakeMove(antLoc, nextMove.front(), "explore");
-					break;
+				Location unseenLoc = std::get<1>(res);
+				auto& lastVisited = _unseenTiles[unseenLoc];
+				// We can know if it really wasn't visited recently or if it was just out of sight (lastVisited == 0). 
+				if (lastVisited != 0) {
+					std::map<Location, Location> cameFrom;
+					std::map<Location, double> costSoFar;
+					_aStar.AStarSearch(antLoc, unseenLoc, cameFrom, costSoFar, _orders);
+					const std::vector<Location> nextMove = _aStar.ReconstructPath(antLoc, unseenLoc, cameFrom);
+					if (!nextMove.empty()) {
+						Location nextDest = nextMove.front();
+						if (MakeMove(antLoc, nextDest, "explore")) {
+							lastVisited = 0;
+							break;
+						}
+					}
 				}
 			}
 		}
