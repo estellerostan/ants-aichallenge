@@ -29,7 +29,8 @@ private:
 	MiniMax _miniMax;
 	AStar _aStar;
 
-	void MakeMoves();   //makes moves for a single turn
+	void MakeMoves();
+	//makes moves for a single turn
 	static bool ContainsValue(std::map<Location, Location>& r_locMap, const Location& r_antLoc);
 	void Setup();
 	void GatherFood();
@@ -41,6 +42,7 @@ private:
 	void AttackAnts();
 	void DefendHills();
 	void TrackEnemies();
+	void EscapeEnemies();
 	bool MakeMove(const Location& r_loc, const Location& r_dest, const std::string& r_from = {}); // makes a move following a destination for a single ant
 	bool MakeMove(const Location& r_loc, int direction, const std::string& r_from = {}); // makes a move to a direction for a single ant
 	void EndTurn();     //indicates to the engine that it has made its moves

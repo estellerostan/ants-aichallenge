@@ -40,6 +40,7 @@ void Bot::MakeMoves()
     AttackHills();
     AttackAnts();
 	TrackEnemies();
+	EscapeEnemies();
 	// explore unseen areas
 	ExploreMap();
 	RandomMove();
@@ -460,6 +461,41 @@ void Bot::TrackEnemies()
 					if (!res.empty()) 
 					{
 						MakeMove(loc, res.front(), "track enemy");
+					}
+				}
+			}
+		}
+	}
+}
+
+/**
+ * \brief Ants without a move that are close to attacking ants will try to join the fight next turn if they are not too far.
+ */
+void Bot::EscapeEnemies()
+{
+	for (Location myAnt : _state.myAnts)
+	{
+		const bool hasMove = ContainsValue(_orders, myAnt);
+		if (!hasMove)
+		{
+			//TODO: instead of two BFS, we could need only one because the search radius is the same.
+			// Look for friends close to ant.
+			const Location myAnts{ _state.GetLocation(myAnt, 2, 5) };
+			const auto antsLoc = _aStar.BreadthFirstSearch(myAnt, myAnts, MYANT, 5);
+
+			// Look for enemies close to ant.
+			const Location enemies{ _state.GetLocation(myAnt, 2, 5) };
+			const auto enemiesLoc = _aStar.BreadthFirstSearch(myAnt, enemies, ENEMYANT, 5);
+
+			// Not enough friends are close and there is more than one enemy so we can't trade.
+			if (antsLoc.size() < 5 && enemiesLoc.size() > 1) 
+			{
+				const std::vector<int> directions = _state.GetOppositeDirections(myAnt, enemiesLoc[0]);
+				for (const int d : directions)
+				{
+					if (MakeMove(myAnt, d, "escape"))
+					{
+						break;
 					}
 				}
 			}
