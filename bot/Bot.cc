@@ -265,6 +265,22 @@ void Bot::RandomMove()
 		const bool hasMove = ContainsValue(_orders, antLoc);
 		if (!hasMove)
 		{
+			const Location& hill = _state.myHills[0];
+			const float dist = _state.ManhattanDistance(antLoc, hill);
+			// Only leave hill if close to it.
+			if (dist < 10) {
+				// TODO: For more than one hill maps.
+				const std::vector<int> directions = _state.GetOppositeDirections(antLoc, hill);
+
+				for (const int d : directions)
+				{
+					if (MakeMove(antLoc, d, "leave hill"))
+					{
+						break;
+					}
+				}
+			}
+
 			int tryCount = 0;
 			while (tryCount < 4) {
 				const int direction = rand() % 4;

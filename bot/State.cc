@@ -89,20 +89,20 @@ float State::ManhattanDistance(Location current, Location destination) const {
 }
 
 //returns the new location from moving in a given direction with the edges wrapped
-Location State::GetLocation(const Location &loc, int direction)
+Location State::GetLocation(const Location &loc, int direction) const
 {
     return Location( (loc.row + DIRECTIONS[direction][0] + rows) % rows,
                      (loc.col + DIRECTIONS[direction][1] + cols) % cols );
 };
 
 //returns the new location from moving in a given direction for a specified length with the edges wrapped
-Location State::GetLocation(const Location& loc, int direction, int length)
+Location State::GetLocation(const Location& loc, int direction, int length) const
 {
     return Location((loc.row + (DIRECTIONS[direction][0] * length) + rows) % rows,
         (loc.col + (DIRECTIONS[direction][1] * length) + cols) % cols);
 };
 
-std::vector<int> State::GetDirections(Location l1, Location l2) {
+std::vector<int> State::GetDirections(Location l1, Location l2) const {
     std::vector<int> directions = std::vector<int>();
 
     if (l1.row < l2.row)
@@ -147,6 +147,57 @@ std::vector<int> State::GetDirections(Location l1, Location l2) {
         else
         {
             directions.push_back(3);
+        }
+    }
+
+    return directions;
+}
+
+std::vector<int> State::GetOppositeDirections(Location l1, Location l2) const {
+    std::vector<int> directions = std::vector<int>();
+
+    if (l1.row < l2.row)
+    {
+        if (l2.row - l1.row >= rows / 2)
+        {
+            directions.push_back(2);
+        }
+        else
+        {
+            directions.push_back(0);
+        }
+    }
+    else if (l1.row > l2.row)
+    {
+        if (l1.row - l2.row >= rows / 2)
+        {
+            directions.push_back(0);
+        }
+        else
+        {
+            directions.push_back(2);
+        }
+    }
+
+    if (l1.col < l2.col)
+    {
+        if (l2.col - l1.col >= cols / 2)
+        {
+            directions.push_back(1);
+        }
+        else {
+            directions.push_back(3);
+        }
+    }
+    else if (l1.col > l2.col)
+    {
+        if (l1.col - l2.col >= cols / 2)
+        {
+            directions.push_back(3);
+        }
+        else
+        {
+            directions.push_back(1);
         }
     }
 
