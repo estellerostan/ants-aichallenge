@@ -24,6 +24,7 @@ private:
 	std::map<Location, int> _unseenTiles;
 	std::set<Location> _enemyHills;
 	std::vector<std::tuple<double, Location, Location>> _attackGroups;
+	int exploreReach = 0;
 
 	State _state;
 	MiniMax _miniMax;

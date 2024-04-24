@@ -99,6 +99,10 @@ void Bot::Setup()
     _miniMax.myAnts.clear();
     _miniMax.enemyAnts.clear();
 
+	if (exploreReach == 0) {
+		exploreReach = std::ceil(_state.viewRadius) + 6;
+	}
+
 	// prevent stepping on own hill
 	// necessary for Bot::UnblockHills
 	for (Location myHill : _state.myHills)
@@ -214,9 +218,9 @@ void Bot::ExploreMap()
 		const bool hasMove = ContainsValue(_orders, antLoc);
 		if (!hasMove)
 		{
-			// Look for unexplored locations that are relatively close.
+			// Look for unexplored locations that are relatively close, using ants view radius.
 			// 1) By checking !Square::isVisible, add location to the unseenDist array if it is out of sight.
-			const Location goal{ _state.GetLocation(antLoc, 1, 15) };
+			const Location goal{ _state.GetLocation(antLoc, 1, exploreReach) };
 			const auto resBFS = _aStar.BreadthFirstSearch(antLoc, goal, INVISIBLE, 3);
 			std::vector<std::tuple<int, Location>> unseenDist;
 			for (Location from : resBFS)
