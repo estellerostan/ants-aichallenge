@@ -270,6 +270,7 @@ void Bot::RandomMove()
 		const bool hasMove = ContainsValue(_orders, antLoc);
 		if (!hasMove)
 		{
+			if (!_state.myHills.empty()) {
 			const Location& hill = _state.myHills[0];
 			const float dist = _state.ManhattanDistance(antLoc, hill);
 			// Only leave hill if close to it.
@@ -285,7 +286,8 @@ void Bot::RandomMove()
 					}
 				}
 			}
-
+			}
+			else {
 			int tryCount = 0;
 			while (tryCount < 4) {
 				const int direction = rand() % 4;
@@ -297,6 +299,7 @@ void Bot::RandomMove()
 			}
 		}
 	}
+}
 }
 
 void Bot::AttackHills()
