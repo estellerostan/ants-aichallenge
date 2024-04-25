@@ -38,7 +38,9 @@ void Bot::MakeMoves()
 	DefendHills();
     GatherFood();
     AttackHills();
-    AttackAnts();
+	CreateAttackGroups();
+	// Don't waste precious ms for a behavior that often don't give satisfying results.
+    // AttackAnts();
 	TrackEnemies();
 	EscapeEnemies();
 	// explore unseen areas
