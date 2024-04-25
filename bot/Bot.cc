@@ -264,7 +264,7 @@ void Bot::RandomMove()
 {
 	for (Location antLoc : _state.myAnts)
 	{
-		const bool hasMove = ContainsValue(_orders, antLoc);
+		bool hasMove = ContainsValue(_orders, antLoc);
 		if (!hasMove)
 		{
 			if (!_state.myHills.empty()) {
@@ -284,7 +284,11 @@ void Bot::RandomMove()
 				}
 			}
 			}
-			else {
+		}
+
+		hasMove = ContainsValue(_orders, antLoc);
+		if (!hasMove)
+		{
 			int tryCount = 0;
 			while (tryCount < 4) {
 				const int direction = rand() % 4;
@@ -296,7 +300,6 @@ void Bot::RandomMove()
 			}
 		}
 	}
-}
 }
 
 void Bot::AttackHills()
