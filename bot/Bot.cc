@@ -40,7 +40,7 @@ void Bot::MakeMoves()
     AttackHills();
     AttackAnts();
 	TrackEnemies();
-	// TODO: fix perf problems for large maps (of 6p with time taken > 100ms)
+	EscapeEnemies();
 	// explore unseen areas
 	ExploreMap();
 	RandomMove();
@@ -99,27 +99,8 @@ void Bot::Setup()
     _miniMax.myAnts.clear();
     _miniMax.enemyAnts.clear();
 
-	// add all locations to unseen tiles set, run once
-	// necessary for Bot::ExploreMap
-	if (_unseenTiles.empty()) {
-		for (int row = 0; row < _state.rows; row++) {
-			for (int col = 0; col < _state.cols; col++) {
-				_unseenTiles.insert(Location(row, col));
-			}
-		}
-	}
-	// remove any tiles that can be seen, run each turn
-	for (auto iter = _unseenTiles.begin(); iter != _unseenTiles.end();)
-	{
-		if (_state.grid[iter->row][iter->col].isVisible)
-		{
-			iter = _unseenTiles.erase(iter);
-			//_state.bug << "seen: " << iter->row << " " << iter->col << "\n";
-		}
-		else
-		{
-			++iter;
-		}
+	if (exploreReach == 0) {
+		exploreReach = std::ceil(_state.viewRadius) + 6;
 	}
 
 	// prevent stepping on own hill
@@ -130,6 +111,37 @@ void Bot::Setup()
 	}
 
 	_attackGroups.clear();
+
+	// Add all locations to unseen tiles set.
+	// Necessary for Bot::ExploreMap, run once per game.
+	if (_unseenTiles.empty()) {
+		for (int row = 0; row < _state.rows; row++) {
+			for (int col = 0; col < _state.cols; col++) {
+				auto from = Location(row, col);
+				_unseenTiles[from] = 0;
+			}
+		}
+	}
+
+	// Remove any tiles that can be seen, run each turn.
+	for (auto iter = _unseenTiles.begin(); iter != _unseenTiles.end();)
+	{
+		if (_state.grid[iter->first.row][iter->first.col].isVisible)
+		{
+			iter = _unseenTiles.erase(iter);
+			//_state.bug << "seen: " << iter->row << " " << iter->col << "\n";
+		}
+		else
+		{
+			++iter;
+		}
+	}
+
+	// Increase the "last visited" counter.
+	for (auto& res : _unseenTiles)
+	{
+		res.second++;
+}
 }
 
 void Bot::GatherFood()
@@ -196,32 +208,53 @@ void Bot::UnblockHills()
     }
 }
 
+/**
+ * \brief Explore the map using a "last visited" counter, to always pick the oldest seen location.
+ */
 void Bot::ExploreMap()
 {
-    for (Location antLoc : _state.myAnts)
-    {
-        const bool hasMove = ContainsValue(_orders, antLoc);
-        if (!hasMove)
-        {
-            std::vector<std::tuple<int, Location>> unseenDist;
-            for (Location unseenLoc : _unseenTiles)
-            {
-                auto dist = _state.EuclideanDistance(antLoc, unseenLoc);
-                unseenDist.emplace_back(dist, unseenLoc);
-                // avoid timeout, even if the search is not complete
-                // better than being removed from the game
+	for (Location antLoc : _state.myAnts)
+	{
+		const bool hasMove = ContainsValue(_orders, antLoc);
+		if (!hasMove)
+		{
+			// Look for unexplored locations that are relatively close, using ants view radius.
+			// 1) By checking !Square::isVisible, add location to the unseenDist array if it is out of sight.
+			const Location goal{ _state.GetLocation(antLoc, 1, exploreReach) };
+			const auto resBFS = _aStar.BreadthFirstSearch(antLoc, goal, INVISIBLE, 3);
+			std::vector<std::tuple<int, Location>> unseenDist;
+			for (Location from : resBFS)
+			{
+				auto dist = _state.ManhattanDistance(antLoc, from);
+				unseenDist.emplace_back(dist, from);
+				// avoid timeout, even if the search is not complete
+				// better than being removed from the game
 				if (_state.TimeRemaining() < 200) {
 					_state.bug << "explore timeout" << endl;
 					break;
 				}
-            }
-            std::sort(unseenDist.begin(), unseenDist.end());
-            for (auto res : unseenDist) 
-            {
-                Location unseenLoc = std::get<1>(res);
-                if (MakeMove(antLoc, unseenLoc, "explore")) {
-                    break;
-                }
+			}
+
+			// 2) Find the greatest "last visited" path we can go to, stop when we managed to move in that direction.
+			std::sort(unseenDist.begin(), unseenDist.end(), greater<>());
+			for (auto res : unseenDist)
+			{
+				Location unseenLoc = std::get<1>(res);
+				auto& lastVisited = _unseenTiles[unseenLoc];
+				// We can know if it really wasn't visited recently or if it was just out of sight (lastVisited == 0). 
+				if (lastVisited != 0) {
+					std::map<Location, Location> cameFrom;
+					std::map<Location, double> costSoFar;
+					_aStar.AStarSearch(antLoc, unseenLoc, cameFrom, costSoFar, _orders);
+					const std::vector<Location> nextMove = _aStar.ReconstructPath(antLoc, unseenLoc, cameFrom);
+					if (!nextMove.empty()) {
+						Location nextDest = nextMove.front();
+						if (MakeMove(antLoc, nextDest, "explore")) {
+							lastVisited = 0;
+							break;
+						}
+					}
+				}
 			}
 		}
 	}
@@ -234,6 +267,24 @@ void Bot::RandomMove()
 		const bool hasMove = ContainsValue(_orders, antLoc);
 		if (!hasMove)
 		{
+			if (!_state.myHills.empty()) {
+			const Location& hill = _state.myHills[0];
+			const float dist = _state.ManhattanDistance(antLoc, hill);
+			// Only leave hill if close to it.
+			if (dist < 10) {
+				// TODO: For more than one hill maps.
+				const std::vector<int> directions = _state.GetOppositeDirections(antLoc, hill);
+
+				for (const int d : directions)
+				{
+					if (MakeMove(antLoc, d, "leave hill"))
+					{
+						break;
+					}
+				}
+			}
+			}
+			else {
 			int tryCount = 0;
 			while (tryCount < 4) {
 				const int direction = rand() % 4;
@@ -242,9 +293,10 @@ void Bot::RandomMove()
 					break;
 				}
 				tryCount++;
-            }
-        }
-    }
+			}
+		}
+	}
+}
 }
 
 void Bot::AttackHills()
@@ -410,6 +462,41 @@ void Bot::TrackEnemies()
 					if (!res.empty()) 
 					{
 						MakeMove(loc, res.front(), "track enemy");
+					}
+				}
+			}
+		}
+	}
+}
+
+/**
+ * \brief Ants without a move that are close to attacking ants will try to join the fight next turn if they are not too far.
+ */
+void Bot::EscapeEnemies()
+{
+	for (Location myAnt : _state.myAnts)
+	{
+		const bool hasMove = ContainsValue(_orders, myAnt);
+		if (!hasMove)
+		{
+			//TODO: instead of two BFS, we could need only one because the search radius is the same.
+			// Look for friends close to ant.
+			const Location myAnts{ _state.GetLocation(myAnt, 2, 5) };
+			const auto antsLoc = _aStar.BreadthFirstSearch(myAnt, myAnts, MYANT, 5);
+
+			// Look for enemies close to ant.
+			const Location enemies{ _state.GetLocation(myAnt, 2, 5) };
+			const auto enemiesLoc = _aStar.BreadthFirstSearch(myAnt, enemies, ENEMYANT, 5);
+
+			// Not enough friends are close and there is more than one enemy so we can't trade.
+			if (antsLoc.size() < 5 && enemiesLoc.size() > 1) 
+			{
+				const std::vector<int> directions = _state.GetOppositeDirections(myAnt, enemiesLoc[0]);
+				for (const int d : directions)
+				{
+					if (MakeMove(myAnt, d, "escape"))
+					{
+						break;
 					}
 				}
 			}

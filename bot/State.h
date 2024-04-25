@@ -64,9 +64,10 @@ struct State
 
     double EuclideanDistance(const Location &r_loc1, const Location &r_loc2) const;
     float ManhattanDistance(Location current, Location destination) const;
-    Location GetLocation(const Location &r_startLoc, int direction);
-    Location GetLocation(const Location& r_startLoc, int direction, int length);
-    std::vector<int> GetDirections(Location l1, Location l2);
+    Location GetLocation(const Location &r_startLoc, int direction) const;
+    Location GetLocation(const Location& r_startLoc, int direction, int length) const;
+    std::vector<int> GetDirections(Location l1, Location l2) const;
+    std::vector<int> GetOppositeDirections(Location l1, Location l2) const;
     bool IsUnoccupied(std::map<Location, Location>& r_orders, const Location& r_newLoc) const;
     bool FakeIsUnoccupied(const Location &r_loc) const;
 

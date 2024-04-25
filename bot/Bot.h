@@ -21,9 +21,10 @@ struct Bot
 private:
 	std::map<Location, Location> _orders;
 	std::map<Location, Location> _targets;
-	std::set<Location> _unseenTiles;
+	std::map<Location, int> _unseenTiles;
 	std::set<Location> _enemyHills;
 	std::vector<std::tuple<double, Location, Location>> _attackGroups;
+	int exploreReach = 0;
 
 	State _state;
 	MiniMax _miniMax;
@@ -90,6 +91,11 @@ private:
 	void TrackEnemies();
 
 	/**
+	 * \brief Ants without a move that are close to attacking ants will try to join the fight next turn if they are not too far.
+	 */
+	void EscapeEnemies();
+
+	/**
 	 * \brief Makes a move following a destination for a single ant.
 	 * \param r_loc the current location
 	 * \param r_dest the destination location
@@ -105,7 +111,7 @@ private:
 	 * \return bool true if the ant can make a move in that direction, false otherwise.
 	 */
 	bool MakeMove(const Location& r_loc, int direction, const std::string& r_from = {});
-	
+
 	/**
 	* \brief Indicates to the engine that the move is over.
 	*/
