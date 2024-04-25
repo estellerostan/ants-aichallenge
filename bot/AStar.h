@@ -58,7 +58,7 @@ public:
 	 * \param goal Goal location
 	 * \param cameFrom The location of where we came stored in AStar::Search
 	 * \param withStart Optional: here we directly want the next move to use it in makeMove.
-	 * \return
+	 * \return All the locations forming a path from goal to start according to a map linking each location to its previous location, reversed.
 	 */
 	std::vector<Location> ReconstructPath(Location start, Location goal, std::map<Location, Location> cameFrom, bool withStart = false) const;
 

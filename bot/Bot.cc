@@ -260,9 +260,6 @@ void Bot::ExploreMap()
 	}
 }
 
-/**
- * \brief To use if there is nothing else to do, even if the timeout threshold is triggered because this code should be fast enough.
- */
 void Bot::RandomMove()
 {
 	for (Location antLoc : _state.myAnts)
@@ -439,9 +436,6 @@ void Bot::DefendHills()
 	}
 }
 
-/**
- * \brief Ants without a move that are close to attacking ants will try to join the fight next turn if they are not too far.
- */
 void Bot::TrackEnemies()
 {
 	for (auto group : _attackGroups)
