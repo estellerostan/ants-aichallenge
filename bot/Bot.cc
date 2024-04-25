@@ -43,6 +43,10 @@ void Bot::MakeMoves()
 	EscapeEnemies();
 	// explore unseen areas
 	ExploreMap();
+	if (_state.TimeRemaining() < 200) {
+		_state.bug << "explore timeout" << endl;
+		return;
+	}
 	RandomMove();
 	UnblockHills();
 
