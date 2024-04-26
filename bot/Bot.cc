@@ -320,13 +320,14 @@ void Bot::CreateAttackGroups()
     std::vector<std::tuple<double, Location, Location>> attackGroups;
     for (Location enemyAnt : _state.enemyAnts)
     {
-        for (Location antLoc : _state.myAnts)
+		if (_attackGroups.size() >= 2) break;
+
+		const Location goal{ _state.GetLocation(enemyAnt, 2, std::ceil(_state.viewRadius / 2)) };
+		const auto friends = _aStar.BreadthFirstSearch(enemyAnt, goal, MYANT, 2);
+
+		for each (auto antLoc in friends)
         {
-            const bool hasMove = ContainsValue(_orders, antLoc);
-            if (!hasMove) {
                 auto dist = _state.EuclideanDistance(antLoc, enemyAnt);
-                if (dist <= 6) // TODO: or another number?
-                {
                     auto position = find_if(_attackGroups.begin(), _attackGroups.end(),
                         [=](auto item)
                         {
@@ -340,16 +341,10 @@ void Bot::CreateAttackGroups()
                         continue;
                     }
 
-                    // TODO: restrict size of attack groups by location instead of by the size of the vector to avoid timeouts
-                    // the vector should be split by zones to do that
-                    if (_attackGroups.size() > 5) continue;
-                        
                     _attackGroups.emplace_back(dist, antLoc, enemyAnt);
                 }
             }
         }
-    }
-    }
 
 void Bot::AttackAnts()
 {
