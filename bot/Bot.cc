@@ -9,7 +9,6 @@ Bot::Bot()
 	_aStar = AStar(&_state);
 };
 
-//plays a single game of Ants.
 void Bot::PlayGame()
 {
 	//reads the game parameters and sets up
@@ -26,7 +25,6 @@ void Bot::PlayGame()
 	}
 }
 
-//makes the bots moves for the turn
 void Bot::MakeMoves()
 {
 	_state.bug << "turn " << _state.turn << ":" << endl;
@@ -36,8 +34,8 @@ void Bot::MakeMoves()
 	// TODO: priority?
 	// for now it is at the top because we only have one hill on the map chosen for the contest so we don't want to loose it
 	DefendHills();
-    GatherFood();
     AttackHills();
+	GatherFood();
 	CreateAttackGroups();
 	// Don't waste precious ms for a behavior that often don't give satisfying results.
     // AttackAnts();
@@ -45,55 +43,8 @@ void Bot::MakeMoves()
 	EscapeEnemies();
 	// explore unseen areas
 	ExploreMap();
-	if (_state.TimeRemaining() < 20) {
-		_state.bug << "explore timeout" << endl;
-		return;
-	}
 	RandomMove();
 	UnblockHills();
-
-	// TODO: Remove this test.
-	const Location start{ 0, 28 }, goal{ 27, 10 };
-	std::map<Location, Location> cameFrom;
-	std::map<Location, double> costSoFar;
-	_aStar.AStarSearch(start, goal, cameFrom, costSoFar, _orders);
-	const std::vector<Location> res = _aStar.ReconstructPath(start, goal, cameFrom);
-	//_state.bug << "AStar: " << res.size() << endl;
-	if (!res.empty()) {
-		//_state.bug << "next move: " << res.front() << endl; // Only if goal =/= start and goal not water.
-	}
-	for (auto from : res)
-	{
-		//_state.bug << from << endl;
-	}
-
-	// TODO: Remove this test.
-	const Location startBFS{ 30, 19 }, goalBFS{ 31, 10 };
-	const auto resBFS = _aStar.BreadthFirstSearch(startBFS, goalBFS);
-	//_state.bug << "BFS: " << resBFS.size() << endl;
-	std::vector<Location> foodLocs;
-	for (Location from : resBFS)
-	{
-		if (_state.grid[from.row][from.col].isFood)
-		{
-			foodLocs.push_back(from);
-			//_state.bug << from << endl;
-		}
-	}
-	//_state.bug << "food amount:" << foodLocs.size() << endl;
-
-	// TODO: Remove this test.
-	//for (int i = 0; i < 1000; ++i)
-	//{
-		const Location startBFS2{ 9, 16 }, goalBFS2{ 15, 16 };
-		const auto resBFS2 = _aStar.BreadthFirstSearch(startBFS2, goalBFS2, ENEMYANT, 5);
-		//_state.bug << "BFS2: " << resBFS2.size() << endl;
-		for (Location from : resBFS2)
-		{
-			// _state.bug << "enemies near " << from << endl;
-		}
-	//}
-	
 
 	_state.bug << "time taken: " << _state.timer.GetTime() << "ms" << endl << endl;
 }
@@ -270,6 +221,11 @@ void Bot::RandomMove()
 {
 	for (Location antLoc : _state.myAnts)
 	{
+		if (_state.TimeRemaining() < 20) {
+			_state.bug << "random move timeout" << endl;
+			return;
+		}
+
 		bool hasMove = ContainsValue(_orders, antLoc);
 		if (!hasMove)
 		{
@@ -364,13 +320,14 @@ void Bot::CreateAttackGroups()
     std::vector<std::tuple<double, Location, Location>> attackGroups;
     for (Location enemyAnt : _state.enemyAnts)
     {
-        for (Location antLoc : _state.myAnts)
+		if (_attackGroups.size() >= 2) break;
+
+		const Location goal{ _state.GetLocation(enemyAnt, 2, std::ceil(_state.viewRadius / 2)) };
+		const auto friends = _aStar.BreadthFirstSearch(enemyAnt, goal, MYANT, 2);
+
+		for each (auto antLoc in friends)
         {
-            const bool hasMove = ContainsValue(_orders, antLoc);
-            if (!hasMove) {
                 auto dist = _state.EuclideanDistance(antLoc, enemyAnt);
-                if (dist <= 6) // TODO: or another number?
-                {
                     auto position = find_if(_attackGroups.begin(), _attackGroups.end(),
                         [=](auto item)
                         {
@@ -384,16 +341,10 @@ void Bot::CreateAttackGroups()
                         continue;
                     }
 
-                    // TODO: restrict size of attack groups by location instead of by the size of the vector to avoid timeouts
-                    // the vector should be split by zones to do that
-                    if (_attackGroups.size() > 5) continue;
-                        
                     _attackGroups.emplace_back(dist, antLoc, enemyAnt);
                 }
             }
         }
-    }
-    }
 
 void Bot::AttackAnts()
 {
@@ -452,9 +403,9 @@ void Bot::TrackEnemies()
 		const Location myAnt = std::get<1>(group);
 		const Location enemyAnt = std::get<2>(group);
 		// Attack happened for real (sometimes minimax doesn't find a winning destination for a fight so the ant doesn't attack).
-		const bool isAttacking = ContainsValue(_orders, myAnt);
-		if (isAttacking) 
-		{
+		//const bool isAttacking = ContainsValue(_orders, myAnt);
+		//if (isAttacking)
+		//{
 			// Look for friends close to ant.
 			const Location myAnts{ _state.GetLocation(myAnt, 2, 3) };
 			const auto antsLoc = _aStar.BreadthFirstSearch(myAnt, myAnts, MYANT, 5);
@@ -474,13 +425,10 @@ void Bot::TrackEnemies()
 					}
 				}
 			}
-		}
+		//}
 	}
 }
 
-/**
- * \brief Ants without a move that are close to attacking ants will try to join the fight next turn if they are not too far.
- */
 void Bot::EscapeEnemies()
 {
 	for (Location myAnt : _state.myAnts)
