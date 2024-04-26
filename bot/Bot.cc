@@ -36,8 +36,8 @@ void Bot::MakeMoves()
 	// TODO: priority?
 	// for now it is at the top because we only have one hill on the map chosen for the contest so we don't want to loose it
 	DefendHills();
-    GatherFood();
     AttackHills();
+	GatherFood();
 	CreateAttackGroups();
 	// Don't waste precious ms for a behavior that often don't give satisfying results.
     // AttackAnts();
