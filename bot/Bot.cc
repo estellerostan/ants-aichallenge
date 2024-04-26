@@ -410,9 +410,9 @@ void Bot::TrackEnemies()
 		const Location myAnt = std::get<1>(group);
 		const Location enemyAnt = std::get<2>(group);
 		// Attack happened for real (sometimes minimax doesn't find a winning destination for a fight so the ant doesn't attack).
-		const bool isAttacking = ContainsValue(_orders, myAnt);
-		if (isAttacking) 
-		{
+		//const bool isAttacking = ContainsValue(_orders, myAnt);
+		//if (isAttacking)
+		//{
 			// Look for friends close to ant.
 			const Location myAnts{ _state.GetLocation(myAnt, 2, 3) };
 			const auto antsLoc = _aStar.BreadthFirstSearch(myAnt, myAnts, MYANT, 5);
@@ -432,7 +432,7 @@ void Bot::TrackEnemies()
 					}
 				}
 			}
-		}
+		//}
 	}
 }
 
