@@ -45,10 +45,6 @@ void Bot::MakeMoves()
 	EscapeEnemies();
 	// explore unseen areas
 	ExploreMap();
-	if (_state.TimeRemaining() < 20) {
-		_state.bug << "explore timeout" << endl;
-		return;
-	}
 	RandomMove();
 	UnblockHills();
 
@@ -270,6 +266,11 @@ void Bot::RandomMove()
 {
 	for (Location antLoc : _state.myAnts)
 	{
+		if (_state.TimeRemaining() < 20) {
+			_state.bug << "random move timeout" << endl;
+			return;
+		}
+
 		bool hasMove = ContainsValue(_orders, antLoc);
 		if (!hasMove)
 		{
