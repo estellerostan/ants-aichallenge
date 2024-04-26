@@ -16,7 +16,11 @@
 struct Bot
 {
 	Bot();
-	void PlayGame();    //plays a single game of Ants
+
+	/**
+	* \brief Plays a single game of Ants.
+	*/
+	void PlayGame();
 
 private:
 	std::map<Location, Location> _orders;
@@ -43,6 +47,9 @@ private:
 	 */
 	static bool ContainsValue(std::map<Location, Location>& r_locMap, const Location& r_antLoc);
 
+	/**
+	 * \brief Reset/ re-compute all data structures between each turns because the behaviors are not saved between turns.
+	 */
 	void Setup();
 
 	/**

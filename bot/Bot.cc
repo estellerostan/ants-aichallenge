@@ -9,7 +9,6 @@ Bot::Bot()
 	_aStar = AStar(&_state);
 };
 
-//plays a single game of Ants.
 void Bot::PlayGame()
 {
 	//reads the game parameters and sets up
@@ -26,7 +25,6 @@ void Bot::PlayGame()
 	}
 }
 
-//makes the bots moves for the turn
 void Bot::MakeMoves()
 {
 	_state.bug << "turn " << _state.turn << ":" << endl;
@@ -436,9 +434,6 @@ void Bot::TrackEnemies()
 	}
 }
 
-/**
- * \brief Ants without a move that are close to attacking ants will try to join the fight next turn if they are not too far.
- */
 void Bot::EscapeEnemies()
 {
 	for (Location myAnt : _state.myAnts)
