@@ -48,49 +48,6 @@ void Bot::MakeMoves()
 	RandomMove();
 	UnblockHills();
 
-	// TODO: Remove this test.
-	const Location start{ 0, 28 }, goal{ 27, 10 };
-	std::map<Location, Location> cameFrom;
-	std::map<Location, double> costSoFar;
-	_aStar.AStarSearch(start, goal, cameFrom, costSoFar, _orders);
-	const std::vector<Location> res = _aStar.ReconstructPath(start, goal, cameFrom);
-	//_state.bug << "AStar: " << res.size() << endl;
-	if (!res.empty()) {
-		//_state.bug << "next move: " << res.front() << endl; // Only if goal =/= start and goal not water.
-	}
-	for (auto from : res)
-	{
-		//_state.bug << from << endl;
-	}
-
-	// TODO: Remove this test.
-	const Location startBFS{ 30, 19 }, goalBFS{ 31, 10 };
-	const auto resBFS = _aStar.BreadthFirstSearch(startBFS, goalBFS);
-	//_state.bug << "BFS: " << resBFS.size() << endl;
-	std::vector<Location> foodLocs;
-	for (Location from : resBFS)
-	{
-		if (_state.grid[from.row][from.col].isFood)
-		{
-			foodLocs.push_back(from);
-			//_state.bug << from << endl;
-		}
-	}
-	//_state.bug << "food amount:" << foodLocs.size() << endl;
-
-	// TODO: Remove this test.
-	//for (int i = 0; i < 1000; ++i)
-	//{
-		const Location startBFS2{ 9, 16 }, goalBFS2{ 15, 16 };
-		const auto resBFS2 = _aStar.BreadthFirstSearch(startBFS2, goalBFS2, ENEMYANT, 5);
-		//_state.bug << "BFS2: " << resBFS2.size() << endl;
-		for (Location from : resBFS2)
-		{
-			// _state.bug << "enemies near " << from << endl;
-		}
-	//}
-	
-
 	_state.bug << "time taken: " << _state.timer.GetTime() << "ms" << endl << endl;
 }
 
