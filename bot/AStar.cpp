@@ -135,7 +135,7 @@ std::vector<Location> AStar::ReconstructPath(Location start, Location goal, std:
 	return path;
 }
 
-std::vector<Location> AStar::BreadthFirstSearch(Location start, Location goal, SquareType searchForType, int count) const {
+std::vector<Location> AStar::BreadthFirstSearch(Location start, Location goal, SquareType searchForType, int count, std::vector<Location>& explored) const {
 	std::map<Location, Location> cameFrom;
 	std::vector<Location> foundLocs;
 	if (goal == start) {
@@ -186,6 +186,9 @@ std::vector<Location> AStar::BreadthFirstSearch(Location start, Location goal, S
 
 						// Stop BFS when needed.
 						if (found == count) {
+							std::transform(std::begin(cameFrom), std::end(cameFrom),
+								std::back_inserter(explored),
+								[](auto const& pair) { return pair.first; });
 							return foundLocs;
 						}
 					}
@@ -200,6 +203,9 @@ std::vector<Location> AStar::BreadthFirstSearch(Location start, Location goal, S
 
 	if (searchForType != UNKNOWN)
 	{
+		std::transform(std::begin(cameFrom), std::end(cameFrom),
+			std::back_inserter(explored),
+			[](auto const& pair) { return pair.first; });
 		return foundLocs;
 	}
 
