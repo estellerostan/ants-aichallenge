@@ -436,17 +436,42 @@ void Bot::EscapeEnemies()
 		const bool hasMove = ContainsValue(_orders, myAnt);
 		if (!hasMove)
 		{
-			//TODO: instead of two BFS, we could need only one because the search radius is the same.
-			// Look for friends close to ant.
-			const Location myAnts{ _state.GetLocation(myAnt, 2, 5) };
-			const auto antsLoc = _aStar.BreadthFirstSearch(myAnt, myAnts, MYANT, 5);
-
 			// Look for enemies close to ant.
+			std::vector<Location> explored;
 			const Location enemies{ _state.GetLocation(myAnt, 2, 5) };
-			const auto enemiesLoc = _aStar.BreadthFirstSearch(myAnt, enemies, ENEMYANT, 5);
+			const auto enemiesLoc = _aStar.BreadthFirstSearch(myAnt, enemies, ENEMYANT, 5, explored);
+
+			if (enemiesLoc.size() > 1) {
+				// Check distance because BFS can sometiemes return ants that are too far.
+				bool shouldEscape = false;
+				for each (auto var in enemiesLoc)
+				{
+					const auto dist = _state.ManhattanDistance(myAnt, var);
+					if (dist <= 5) {
+						shouldEscape = true;
+						break;
+					}
+				}
+				if (!shouldEscape) break;
+
+				// Look for friends close to ant.
+				// Check distance again, this time from the results given by the previous BFS
+				// (this may be less precise but it doesn't waste ms by running yet another BFS).
+				int myAntsCounter = 0;
+				for each (auto var in explored)
+				{
+					if (myAntsCounter >= 5) {
+						break;
+					}
+
+					const auto dist = _state.ManhattanDistance(myAnt, var);
+					if (_state.grid[var.row][var.col].isMyAnt && dist <= 5) {
+						myAntsCounter++;
+					}
+				}
 
 			// Not enough friends are close and there is more than one enemy so we can't trade.
-			if (antsLoc.size() < 5 && enemiesLoc.size() > 1) 
+				if (myAntsCounter < 5)
 			{
 				const std::vector<int> directions = _state.GetOppositeDirections(myAnt, enemiesLoc[0]);
 				for (const int d : directions)
@@ -459,6 +484,7 @@ void Bot::EscapeEnemies()
 			}
 		}
 	}
+}
 }
 
 bool Bot::ContainsValue(std::map<Location, Location>& r_locMap, const Location& r_antLoc)
