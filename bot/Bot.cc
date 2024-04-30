@@ -113,6 +113,12 @@ void Bot::GatherFood()
 
 		for (const Location from : antLoc)
 		{
+			// If ant has no task.
+			const bool isAntBusyWithFood = ContainsValue(_targets, from);
+			if (isAntBusyWithFood) {
+				break;
+			}
+
 			const Location myAnt = from, enemiesRadius{ _state.GetLocation(myAnt, 2, 3) }, enemyRadius{ _state.GetLocation(foodLoc, 2, 2) };
 			// Prioritize own food over enemy food.
 			const auto isEnemyNearFood = _aStar.BreadthFirstSearch(foodLoc, enemyRadius, ENEMYANT, 5).size() == 1;
@@ -130,10 +136,7 @@ void Bot::GatherFood()
 				continue;
 			}
 
-			// If ant has no task.
-			const bool isAntBusyWithFood = ContainsValue(_targets, myAnt);
-			if (!isAntBusyWithFood)
-			{
+
 				std::map<Location, Location> cameFrom;
 				std::map<Location, double> costSoFar;
 				_aStar.AStarSearch(myAnt, foodLoc, cameFrom, costSoFar, _orders);
@@ -144,7 +147,6 @@ void Bot::GatherFood()
 			}
 		}
 	}
-}
 
 void Bot::UnblockHills()
 {
